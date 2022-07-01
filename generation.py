@@ -30,6 +30,7 @@ def generation(N,n,k):
 
     return
 
+#Prende lista di precedenze sul file ed esegue parsing in lista di liste di due interi, che rappresentano la relazione "i precede j" per i,j=1..n
 def parse_prec(p):
     if p[-1:]=="\n":
         p=p[:-1]
@@ -42,6 +43,7 @@ def parse_prec(p):
             j[1]=int(j[1])
     return ret_list
 
+#Prende lista di processing time sul file ed esegue parsing in lista di interi, che rappresentano i processing time dei job 1..n
 def parse_pr_time(p):
     if p[-1:]=="\n":
         p=p[:-1]
