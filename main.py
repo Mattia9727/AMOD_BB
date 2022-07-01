@@ -2,6 +2,7 @@ import time
 
 import gurobipy as gp
 from gurobipy import GRB
+import generation
 
 
 def bb_implementation():
@@ -71,9 +72,15 @@ def pli_implementation(n, p, v):
         print('Encountered an attribute error')
 
 
+
 def main():
     t = time.time()
-    pli_implementation(4, [4,3,2,1], [[0,1],[1,2],[2,3]])
+    file = open("instances.txt","r")
+    pr_time = file.readline()
+    while pr_time != None:
+        prec = file.readline()
+        pli_implementation(10, pr_time.split("\t"), generation.parse_prec(prec))
+        pr_time = file.readline()
     total = time.time() - t
     print(total)
 
