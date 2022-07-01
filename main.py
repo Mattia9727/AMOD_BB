@@ -3,147 +3,78 @@ import time
 import gurobipy as gp
 from gurobipy import GRB
 
+
 def bb_implementation():
     pass
 
-def pli_implementation(binary_vars, integer_vars, continuous_vars):
+
+# m: gurobi model
+# x: variabili di precedenza
+# i,j: indici da fissare
+def set_fixed_precedence(m, x, i, j):
+    m.addConstr(x[i, j] == 1, name="vincolo di precedenza fissato")
+    m.addConstr(x[j, i] == 0, name="vincolo di precedenza fissato")
+
+
+# n: numero di job
+# p: lista contenente i processing time dei job
+# v: vincoli di precedenza
+def pli_implementation(n, p, v):
+    M = 100
     try:
+        # Create a new model
+        m = gp.Model("scheduling")
 
-        # !/usr/bin/env python3.7
+        # x[i,j]=1 significa che i precede j
+        x = m.addMVar((n, n), vtype=GRB.BINARY, name="x")
+        s = m.addMVar((1, n), lb=0, vtype=GRB.INTEGER, name="s")
+        c = m.addMVar((1, n), lb=0, vtype=GRB.INTEGER, name="c")
 
-        # Copyright 2022, Gurobi Optimization, LLC
+        # Funzione obiettivo: minimizzare somma tempi di completamento
+        m.setObjective(c.sum(), GRB.MINIMIZE)
 
-        # Solve the classic diet model, showing how to add constraints
-        # to an existing model.
+        # Vincoli
+        for i in range(n):
+            m.addConstr(c[0, i] == s[0, i] + p[i], name="tempo di completamento" + str(i))
+            for j in range(i, n):
+                if i != j:
 
-        import gurobipy as gp
-        from gurobipy import GRB
+                    m.addConstr(x[i, j] + x[j, i] == 1, name="x" + str(i) + str(j))
+                    for k in v:
+                        if k == [i, j]:
+                            set_fixed_precedence(m,x,i,j)
+                        elif k == [j, i]:
+                            set_fixed_precedence(m,x,j,i)
 
-        # Nutrition guidelines, based on
-        # USDA Dietary Guidelines for Americans, 2005
-        # http://www.health.gov/DietaryGuidelines/dga2005/
 
-        categories, minNutrition, maxNutrition = gp.multidict({
-            'calories': [1800, 2200],
-            'protein': [91, GRB.INFINITY],
-            'fat': [0, 65],
-            'sodium': [0, 1779]})
+                    m.addConstr(s[0, j] >= s[0, i] + p[i] - (M * (1 - x[i, j])),
+                                name="precedenza di i su j" + str(i) + str(j))
+                    m.addConstr(s[0, j] >= s[0, i] + p[i] - (M * (x[j, i])),
+                                name="precedenza di i su j" + str(i) + str(j))
 
-        foods, cost = gp.multidict({
-            'hamburger': 2.49,
-            'chicken': 2.89,
-            'hot dog': 1.50,
-            'fries': 1.89,
-            'macaroni': 2.09,
-            'pizza': 1.99,
-            'salad': 2.49,
-            'milk': 0.89,
-            'ice cream': 1.59})
+                    m.addConstr(s[0, i] >= s[0, j] + p[j] - (M * x[i, j]),
+                                name="precedenza di j su i" + str(j) + str(i))
+                    m.addConstr(s[0, i] >= s[0, j] + p[j] - (M * (1 - x[j, i])),
+                                name="precedenza di j su i" + str(j) + str(i))
 
-        # Nutrition values for the foods
-        nutritionValues = {
-            ('hamburger', 'calories'): 410,
-            ('hamburger', 'protein'): 24,
-            ('hamburger', 'fat'): 26,
-            ('hamburger', 'sodium'): 730,
-            ('chicken', 'calories'): 420,
-            ('chicken', 'protein'): 32,
-            ('chicken', 'fat'): 10,
-            ('chicken', 'sodium'): 1190,
-            ('hot dog', 'calories'): 560,
-            ('hot dog', 'protein'): 20,
-            ('hot dog', 'fat'): 32,
-            ('hot dog', 'sodium'): 1800,
-            ('fries', 'calories'): 380,
-            ('fries', 'protein'): 4,
-            ('fries', 'fat'): 19,
-            ('fries', 'sodium'): 270,
-            ('macaroni', 'calories'): 320,
-            ('macaroni', 'protein'): 12,
-            ('macaroni', 'fat'): 10,
-            ('macaroni', 'sodium'): 930,
-            ('pizza', 'calories'): 320,
-            ('pizza', 'protein'): 15,
-            ('pizza', 'fat'): 12,
-            ('pizza', 'sodium'): 820,
-            ('salad', 'calories'): 320,
-            ('salad', 'protein'): 31,
-            ('salad', 'fat'): 12,
-            ('salad', 'sodium'): 1230,
-            ('milk', 'calories'): 100,
-            ('milk', 'protein'): 8,
-            ('milk', 'fat'): 2.5,
-            ('milk', 'sodium'): 125,
-            ('ice cream', 'calories'): 330,
-            ('ice cream', 'protein'): 8,
-            ('ice cream', 'fat'): 10,
-            ('ice cream', 'sodium'): 180}
-
-        # Model
-        m = gp.Model("diet")
-
-        # Create decision variables for the foods to buy
-        buy = m.addVars(foods, name="buy")
-
-        # You could use Python looping constructs and m.addVar() to create
-        # these decision variables instead.  The following would be equivalent
-        #
-        # buy = {}
-        # for f in foods:
-        #   buy[f] = m.addVar(name=f)
-
-        # The objective is to minimize the costs
-        m.setObjective(buy.prod(cost), GRB.MINIMIZE)
-
-        # Using looping constructs, the preceding statement would be:
-        #
-        # m.setObjective(sum(buy[f]*cost[f] for f in foods), GRB.MINIMIZE)
-
-        # Nutrition constraints
-        m.addConstrs((gp.quicksum(nutritionValues[f, c] * buy[f] for f in foods)
-                      == [minNutrition[c], maxNutrition[c]]
-                      for c in categories), "_")
-
-        # Using looping constructs, the preceding statement would be:
-        #
-        # for c in categories:
-        #  m.addRange(sum(nutritionValues[f, c] * buy[f] for f in foods),
-        #             minNutrition[c], maxNutrition[c], c)
-
-        def printSolution():
-            if m.status == GRB.OPTIMAL:
-                print('\nCost: %g' % m.ObjVal)
-                print('\nBuy:')
-                for f in foods:
-                    if buy[f].X > 0.0001:
-                        print('%s %g' % (f, buy[f].X))
-            else:
-                print('No solution')
-
-        # Solve
+        # Optimize model
         m.optimize()
-        printSolution()
 
-        print('\nAdding constraint: at most 6 servings of dairy')
-        m.addConstr(buy.sum(['milk', 'ice cream']) <= 6, "limit_dairy")
-
-        # Solve
-        m.optimize()
-        printSolution()
+        print("Somma tempi di completamento", m.ObjVal)
+        print(x.X)
+        print(c.X)
 
     except gp.GurobiError as e:
-        print('Error code ' + str(e.errno) + ': ' + str(e))
+        print('Error code ' + str(e.errno) + ": " + str(e))
 
     except AttributeError:
         print('Encountered an attribute error')
 
+
 def main():
-    binary_vars = ["x1","x2","x3"]
-    integer_vars = ["y1","y2","y3"]
-    continuous_vars = ["z1","z2","z3"]
     t = time.time()
-    pli_implementation(binary_vars, integer_vars, continuous_vars)
-    total = time.time()-t
+    pli_implementation(4, [4,3,2,1], [[0,1],[1,2],[2,3]])
+    total = time.time() - t
     print(total)
 
 
