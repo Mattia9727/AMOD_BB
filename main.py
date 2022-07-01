@@ -13,15 +13,15 @@ def bb_implementation():
 # x: variabili di precedenza
 # i,j: indici da fissare
 def set_fixed_precedence(m, x, i, j):
-    m.addConstr(x[i, j] == 1, name="vincolo di precedenza fissato")
-    m.addConstr(x[j, i] == 0, name="vincolo di precedenza fissato")
+    m.addConstr(x[i, j] == 1, name="vincolo di precedenza fissato "+str(i)+str(j)+str(1))
+    m.addConstr(x[j, i] == 0, name="vincolo di precedenza fissato "+str(j)+str(i)+str(0))
 
 
 # n: numero di job
 # p: lista contenente i processing time dei job
 # v: vincoli di precedenza
 def pli_implementation(n, p, v):
-    M = 100
+    M = 1000
     try:
         # Create a new model
         m = gp.Model("scheduling")
@@ -49,18 +49,19 @@ def pli_implementation(n, p, v):
 
 
                     m.addConstr(s[0, j] >= s[0, i] + p[i] - (M * (1 - x[i, j])),
-                                name="precedenza di i su j" + str(i) + str(j))
+                                name="precedenza di i su j " + str(i) + str(j))
                     m.addConstr(s[0, j] >= s[0, i] + p[i] - (M * (x[j, i])),
-                                name="precedenza di i su j" + str(i) + str(j))
+                                name="precedenza di i su j " + str(i) + str(j))
 
                     m.addConstr(s[0, i] >= s[0, j] + p[j] - (M * x[i, j]),
-                                name="precedenza di j su i" + str(j) + str(i))
+                                name="precedenza di j su i " + str(j) + str(i))
                     m.addConstr(s[0, i] >= s[0, j] + p[j] - (M * (1 - x[j, i])),
-                                name="precedenza di j su i" + str(j) + str(i))
+                                name="precedenza di j su i " + str(j) + str(i))
 
         # Optimize model
+        consts =m.getConstrs()
         m.optimize()
-
+        consts = m.getConstrs()
         print("Somma tempi di completamento", m.ObjVal)
         print(x.X)
         print(c.X)
@@ -77,10 +78,15 @@ def main():
     t = time.time()
     file = open("instances.txt","r")
     pr_time = file.readline()
-    while pr_time != None:
+    while not pr_time == None and pr_time:
         prec = file.readline()
-        pli_implementation(10, pr_time.split("\t"), generation.parse_prec(prec))
+        if pr_time[-1:] == "\n":
+            pr_time = pr_time[:-1]
+        pr_time_list = generation.parse_pr_time(pr_time)
+        prec_list = generation.parse_prec(prec)
+        pli_implementation(10, pr_time_list, prec_list)
         pr_time = file.readline()
+
     total = time.time() - t
     print(total)
 
