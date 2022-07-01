@@ -1,6 +1,9 @@
 import random
 
 def generation(N,n,k):
+    if n<k:
+        print("Ci sono cicli.")
+        return
 
     with open('instances.txt', 'w') as file:
         file.close()
@@ -30,7 +33,7 @@ def generation(N,n,k):
 
     return
 
-#Prende lista di precedenze sul file ed esegue parsing in lista di liste di due interi, che rappresentano la relazione "i precede j" per i,j=1..n
+#Prende lista di precedenze sul file ed esegue parsing in lista di liste di due interi, che rappresentano la relazione "i precede j"
 def parse_prec(p):
     if p[-1:]=="\n":
         p=p[:-1]
@@ -52,6 +55,19 @@ def parse_pr_time(p):
     ret_list = list(map_object)
     return ret_list
 
+def mu_gen(n):
+    random.seed()
+    ret_list=[]
+    for i in range(n):
+        ret_list.append(random.randint(-10,10))
+    return ret_list
+
+def lambda_gen(n):
+    random.seed()
+    ret_list=[]
+    for i in range(n):
+        ret_list.append(random.randint(0,10))
+    return ret_list
 
 
 if __name__ == "__main__":
