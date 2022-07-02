@@ -3,112 +3,112 @@ import time
 import gurobipy as gp
 from gurobipy import GRB
 import generation
+import resolver
 
+# prob: sottoproblema
+# processing_time: tempi di processamento dei job
+# gurobi model
+def set_additional_constr(prob, processing_time, model, s_var):
+    if prob == []:
+        return model
+    else:
+        current_starting = 0
 
-def bb_implementation():
-    pass
+        for i in prob:
+            model.addConstr(s_var[0,i] == current_starting, name="set starting time"+ str(i)+" ="+ str(current_starting))
+            current_starting += processing_time[i]
 
+    return model
 
-# m: gurobi model
-# x: variabili di precedenza
-# i,j: indici da fissare
-def set_fixed_precedence(m, x, i, j):
-    m.addConstr(x[i, j] == 1, name="vincolo di precedenza fissato " + str(i) + str(j) + str(1))
-    m.addConstr(x[j, i] == 0, name="vincolo di precedenza fissato " + str(j) + str(i) + str(0))
-
-
-def get_relaxed_obj_func(c, x, v, mu_list):
-    vars = []
+def is_feasible(x,v,n):
     for constr in v:
-        vars.append(x[constr[0], constr[1]])
-        vars.append(x[constr[1], constr[0]])
-    relax_vars = gp.LinExpr(mu_list, vars)
-    mu_sum = 0
-    for i in range(0,len(mu_list),2):
-        mu_sum += mu_list[i]
-    return c.sum() - (relax_vars - mu_sum)
+        print(constr)
+        print(x)
+        if(x[constr[0] * n + constr[1]].X == 0):
+            return 0
+    return 1
 
-def set_bigM(p):
-    sum = 0
-    for val in p:
-        sum += val
-    return 10 * sum
+def get_results(model,n):
+    x = []
+    for i in range(n*n):
+        x.append(model.getVarByName("x["+ str(i) +"]"))
+    return x, model.ObjVal
 
-
-# n: numero di job
-# p: lista contenente i processing time dei job
-# v: vincoli di precedenza
-def pli_implementation(n, p, v, relax, mu_list=[]):
-    M = set_bigM(p)
-    try:
-        # Create a new model
-        m = gp.Model("scheduling")
-
-        # x[i,j]=1 significa che i precede j
-        x = m.addMVar((n, n), vtype=GRB.BINARY, name="x")
-        s = m.addMVar((1, n), lb=0, vtype=GRB.INTEGER, name="s")
-        c = m.addMVar((1, n), lb=0, vtype=GRB.INTEGER, name="c")
-
-        # Funzione obiettivo: minimizzare somma tempi di completamento
-        if relax == 0:
-            m.setObjective(c.sum(), GRB.MINIMIZE)
-        else:
-            m.setObjective(get_relaxed_obj_func(c, x, v, mu_list), GRB.MINIMIZE)
-
-        for k in v:
-            if relax == 0:
-                set_fixed_precedence(m, x, k[0], k[1])
-
-        # Vincoli
-        for i in range(n):
-            m.addConstr(c[0, i] == s[0, i] + p[i], name="tempo di completamento" + str(i))
-            for j in range(i, n):
-                if i != j:
-                    m.addConstr(x[i, j] + x[j, i] == 1, name="verso precedenza " + str(i) + " -> " + str(j))
-
-                    m.addConstr(s[0, j] >= s[0, i] + p[i] - (M * (x[j, i])), name="precedenza di i su j " + str(i) + str(j))
-                    m.addConstr(s[0, i] >= s[0, j] + p[j] - (M * x[i, j]),   name="precedenza di j su i " + str(j) + str(i))
-
-                    # m.addConstr(s[0, j] >= s[0, i] + p[i] - (M * (1 - x[i, j])),
-                    #             name="precedenza di i su j " + str(i) + str(j))
-                    # m.addConstr(s[0, j] >= s[0, i] + p[i] - (M * (x[j, i])),
-                    #             name="precedenza di i su j " + str(i) + str(j))
-                    #
-                    # m.addConstr(s[0, i] >= s[0, j] + p[j] - (M * x[i, j]),
-                    #             name="precedenza di j su i " + str(j) + str(i))
-                    # m.addConstr(s[0, i] >= s[0, j] + p[j] - (M * (1 - x[j, i])),
-                    #             name="precedenza di j su i " + str(j) + str(i))
-
-        # Optimize model
-        m.optimize()
-        print("Somma tempi di completamento: ", m.ObjVal)
-        print(x.X)
-        print(c.X)
-
-    except gp.GurobiError as e:
-        print('Error code ' + str(e.errno) + ": " + str(e))
-
-    except AttributeError:
-        print('Encountered an attribute error')
+# xInc: Soluzione incumbent
+# zInc: Valore della soluzione incumbent
+# Q   : Coda nodi foglia attivi
+# m   : Problema corrente
+def bb_implementation(n, p, v, mu_list):
+    xInc = None
+    zInc = GRB.INFINITY
+    # [] corrisponde alla root
+    Q = [[]]
+    totalTime = 0
+    while Q != []:
+        # Prende un problema da analizzare
+        prob = Q.pop(0)
+        # Risolvo il problema
+        model, x, s = resolver.pli_implementation(n,p,v,1,mu_list)
+        newModel = set_additional_constr(prob, p, model, s)
+        try:
+            resModel, time= resolver.solve_model(newModel)
+            totalTime+=time
+            xStar, zStar = get_results(resModel,n)
+        except Exception:
+            print("EXCEPTION")
+            continue
+        #Bounding
+        if(zStar < zInc):
+            # Controllare se xStar è feasible per il problema originale
+            if(is_feasible(xStar,v,n)):
+                # Aggiorniamo gli incumbent
+                xInc = xStar
+                zInc = zStar
+            else:
+                #Decomporre in sottoproblemi
+                for i in range(n):
+                    no_add = 0
+                    for j in prob:
+                        if i==j:
+                            no_add = 1
+                            break
+                    if no_add == 0:
+                        addProb = prob.copy()
+                        addProb.append(i)
+                        Q.append(addProb)
+    print("RISULTATO BB: " + str(zInc))
+    return [xInc, zInc], totalTime
 
 
 def main():
     t = time.time()
     file = open("instances.txt","r")
     pr_time = file.readline()
-    while pr_time:
-        prec = file.readline()
-        pr_time_list = generation.parse_pr_time(pr_time)
-        prec_list = generation.parse_prec(prec)
-        mu = generation.mu_gen(2*len(prec_list))
-        pli_implementation(10, pr_time_list, prec_list, 0)
-        pli_implementation(10, pr_time_list, prec_list, 1, mu)
-        pr_time = file.readline()
-    #pli_implementation(10, [12,35,47,21,16,46,20,4,11,23], [[8,7],[6,1],[1,4]], 0)
-    #pli_implementation(10, [12,35,47,21,16,46,20,4,11,23], [[8,7],[6,1],[1,4]], 1, [1,1,-1,-1,2,4])
-    total = time.time() - t
-    print(total)
+    # while pr_time:
+    #     prec = file.readline()
+    #     pr_time_list = generation.parse_pr_time(pr_time)
+    #     prec_list = generation.parse_prec(prec)
+    #     mu = generation.mu_gen(2*len(prec_list))
+    #     resolver.pli_implementation(10, pr_time_list, prec_list, 0)
+    #     resolver.pli_implementation(10, pr_time_list, prec_list, 1, mu)
+    #     pr_time = file.readline()
 
+#CALCOLO TEMPO PLI
+
+    # t = time.time()
+    total_pli = resolver.solve_model(resolver.pli_implementation(10, [12,35,47,21,16,46,20,4,11,23], [[8,7],[6,1],[1,4]], 0)[0])[1]
+    # total = time.time() - t
+
+
+#CALCOLO TEMPO BB
+
+    xz, total = bb_implementation(10, [12,35,47,21,16,46,20,4,11,23], [[8,7],[6,1],[1,4]], [1,1,-1,-1,2,4])
+    print("\n\n\n")
+    print("CALCOLO CON PLI")
+    print(total_pli)
+    print("CALCOLO CON BB")
+    print(total)
+    print("\n\n\n")
 
 if __name__ == "__main__":
     main()
