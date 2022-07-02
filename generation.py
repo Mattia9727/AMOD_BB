@@ -16,7 +16,7 @@ def generation(N,n,k):
             Pi.append(random.randint(1,50))
         j=0
         while j<k:
-            prec = [random.randint(0,n),random.randint(0,n)]
+            prec = [random.randint(0,n-1),random.randint(0,n-1)]
             nPrec = [prec[1], prec[0]]
             if prec[0] != prec[1] and prec not in precs and nPrec not in precs:
                 precs.append(prec)
@@ -24,11 +24,16 @@ def generation(N,n,k):
 
         with open('instances.txt', 'a') as file:
             for j in range(n):
-                file.write(str(Pi[j]) + "_");
+                file.write(str(Pi[j]))
+                if(j < n-1):
+                    file.write("_")
             file.write("\n")
-            for p in precs:
-                file.write(str(p[0]) + "," + str(p[1]) + "_")
-            file.write("\n\n")
+            for j in range(len(precs)):
+                p = precs[j]
+                file.write(str(p[0]) + "," + str(p[1]))
+                if j < len(precs)-1:
+                    file.write("_")
+            file.write("\n")
         file.close()
 
     return
