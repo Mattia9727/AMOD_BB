@@ -34,6 +34,25 @@ def get_results(model,n):
         x.append(model.getVarByName("x["+ str(i) +"]"))
     return x, model.ObjVal
 
+def dominance_rule(prob,i,v):
+    job_in_constr = -1
+    for prec in v:
+        if i == prec[1]:
+            job_in_constr = prec[0]
+    if prob == []:
+        if job_in_constr != -1:
+            return 1
+        else:
+            return 0
+    else:
+        for j in prob:
+            if job_in_constr != -1:
+                if j == job_in_constr:
+                    return 0
+            else:
+                return 0
+    return 1
+
 # xInc: Soluzione incumbent
 # zInc: Valore della soluzione incumbent
 # Q   : Coda nodi foglia attivi
@@ -73,10 +92,11 @@ def bb_implementation(n, p, v, mu_list):
                             no_add = 1
                             break
                     if no_add == 0:
-                        addProb = prob.copy()
-                        addProb.append(i)
-                        Q.append(addProb)
-    print("RISULTATO BB: " + str(zInc))
+                        if not dominance_rule(prob,i,v):
+                            addProb = prob.copy()
+                            addProb.append(i)
+                            Q.append(addProb)
+    #print("RISULTATO BB: " + str(zInc))
     return [xInc, zInc], totalTime
 
 
@@ -100,7 +120,7 @@ def main():
 #CALCOLO TEMPO PLI
 
     # t = time.time()
-    total_pli = resolver.solve_model(resolver.pli_implementation(len(pr_time_list), pr_time_list, prec_list, 0)[0])[1]
+    m, total_pli = resolver.solve_model(resolver.pli_implementation(len(pr_time_list), pr_time_list, prec_list, 0)[0])[1]
     # total_pli = resolver.solve_model(resolver.pli_implementation(10, [12,35,47,21,16,46,20,4,11,23], [[8,7],[6,1],[1,4]], 0)[0])[1]
     # total = time.time() - t
 
@@ -111,8 +131,10 @@ def main():
     print("\n\n\n")
     print("CALCOLO CON PLI")
     print(total_pli)
+    print(m.ObjVal)
     print("CALCOLO CON BB")
     print(total)
+    print(xz[1])
     print("\n\n\n")
 
 if __name__ == "__main__":
