@@ -84,6 +84,10 @@ def main():
     t = time.time()
     file = open("instances.txt","r")
     pr_time = file.readline()
+    pr_time_list = generation.parse_pr_time(pr_time)
+    prec = file.readline()
+    prec_list = generation.parse_prec(prec)
+    mu = generation.mu_gen(2 * len(prec_list))
     # while pr_time:
     #     prec = file.readline()
     #     pr_time_list = generation.parse_pr_time(pr_time)
@@ -96,13 +100,14 @@ def main():
 #CALCOLO TEMPO PLI
 
     # t = time.time()
-    total_pli = resolver.solve_model(resolver.pli_implementation(10, [12,35,47,21,16,46,20,4,11,23], [[8,7],[6,1],[1,4]], 0)[0])[1]
+    total_pli = resolver.solve_model(resolver.pli_implementation(len(pr_time_list), pr_time_list, prec_list, 0)[0])[1]
+    # total_pli = resolver.solve_model(resolver.pli_implementation(10, [12,35,47,21,16,46,20,4,11,23], [[8,7],[6,1],[1,4]], 0)[0])[1]
     # total = time.time() - t
 
 
 #CALCOLO TEMPO BB
 
-    xz, total = bb_implementation(10, [12,35,47,21,16,46,20,4,11,23], [[8,7],[6,1],[1,4]], [1,1,-1,-1,2,4])
+    xz, total = bb_implementation(len(pr_time_list), pr_time_list, prec_list, mu)
     print("\n\n\n")
     print("CALCOLO CON PLI")
     print(total_pli)
