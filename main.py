@@ -31,8 +31,41 @@ def main():
 #CALCOLO TEMPO PLI
 
     # t = time.time()
-    m, total_pli = resolver.solve_model(resolver.pli_implementation(len(pr_time_list), pr_time_list, prec_list, 0)[0])[1]
-    # total_pli = resolver.solve_model(resolver.pli_implementation(10, [12,35,47,21,16,46,20,4,11,23], [[8,7],[6,1],[1,4]], 0)[0])[1]
+
+    data = []
+    header = ["#Job", "#Precedenze", "Lista mu", "Risultato PLI", "Risultato BB", "Tempo PLI", "Tempo BB"]
+    pTimes = [49, 37, 32, 2, 21, 9, 49, 12, 20, 4, 11, 5, 36, 78, 4, 55, 34, 19, 98, 76, 33]
+    mu = []
+    for i in range (5,16):
+        print("SIAMO AL JOB: "+str(i ))
+        pr_time_list= []
+        prec_list = []
+        for j in range(i):
+            pr_time_list.append(pTimes[j])
+            if j!=0 and j<round(float(i/2)):
+                prec_list.append([j-1,j])
+                mu.append(1)
+
+        while (len(prec_list)!= 0):
+            m, total_pli = solver.solve_model(solver.pli_implementation(len(pr_time_list), pr_time_list, prec_list, 0)[0])
+            xz, total_bb = branch_and_bound.bb_implementation(len(pr_time_list), pr_time_list, prec_list, mu)
+
+            data.append([str(len(pr_time_list)), str(len(prec_list)), str(mu), total_pli, total_bb])
+
+            prec_list.pop(len(prec_list) - 1)
+            mu.pop(len(mu) - 1)
+
+    import csv
+
+    with open('results.csv', 'w', encoding='UTF8') as f:
+        writer = csv.writer(f)
+        # write the header
+        writer.writerow(header)
+
+        # write the data
+        writer.writerows(data)
+
+    # total_pli = solver.solve_model(solver.pli_implementation(10, [12,35,47,21,16,46,20,4,11,23], [[8,7],[6,1],[1,4]], 0)[0])[1]
     # total = time.time() - t
 
 
