@@ -27,12 +27,27 @@ def get_relaxed_obj_func(c, x, v, mu_list):
 
     return c.sum() + (relax_vars - mu_sum)
 
+def get_relaxed_obj_func_weight(lambda_list,constr,p):
+    weight_c = []
+    weight_p = 0
+    for i in range(len(p)):
+        w = 1
+        for j in range(len(constr)):
+            v = constr[j]
+            if i == v[0]:
+                w += lambda_list[j]
+            elif i == v[1]:
+                w -= lambda_list[j]
+            if i == 0:
+                weight_p += p[v[1]] * lambda_list[j]
+        weight_c.append(w)
+    return weight_c, weight_p
+
 def set_bigM(p):
     sum = 0
     for val in p:
         sum += val
     return 10 * sum
-
 
 # n: numero di job
 # p: lista contenente i processing time dei job
