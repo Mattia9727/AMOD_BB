@@ -76,5 +76,5 @@ def lambda_gen(n):
 
 
 if __name__ == "__main__":
-    generation(1,10,9)
+    generation(1,13,8)
 
