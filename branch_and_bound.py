@@ -5,6 +5,21 @@ from gurobipy import GRB
 
 import solver
 
+def sort(sub_li):
+    return (sorted(sub_li, key=lambda x: x[1]))
+
+def smith_rule(p,w):
+    if len(p)==len(w):
+        density_list = []
+        schedule_list = []
+        for i in range(len(p)):
+            density_list.append([i,w[i]/p[i]])
+        density_list = sort(density_list)
+        for i in range(len(p)):
+            schedule_list.append(density_list[i][0])
+        return schedule_list
+    else:
+        return "Error: different lengths"
 
 def set_additional_constr(prob, processing_time, model, s_var):
     if prob == []:
