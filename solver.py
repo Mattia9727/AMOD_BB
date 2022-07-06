@@ -8,9 +8,10 @@ import generator
 # m: gurobi model
 # x: variabili di precedenza
 # i,j: indici da fissare
-def set_fixed_precedence(m, x, i, j, val):
-    m.addConstr(x[i][j] == val, name="vincolo di precedenza fissato " + str(i) + str(j) + str(1))
-
+def set_fixed_precedence(m, c, v, p):
+    i = v[0]
+    j = v[1]
+    m.addConstr(c[0, j] - p[j] >= c[0, i], name="Vincolo di precedenza fissato "+str(i)+str(j))
 
 def get_relaxed_obj_func(c, x, v, mu_list):
     vars = []
@@ -62,11 +63,7 @@ def pli_implementation(n, p, v, relax, mu_list=None):
             m.setObjective(get_relaxed_obj_func(c, x, v, mu_list), GRB.MINIMIZE)
         for k in v:
             if relax == 0:
-                if k[0]<k[1]:
-                    set_fixed_precedence(m, x, k[0], k[1], 1)
-                else:
-                    set_fixed_precedence(m, x, k[1], k[0], 0)
-
+                set_fixed_precedence(m, c, k, p)
         # Vincoli
         for i in range(n):
             m.addConstr(c[0, i] == s[0, i] + p[i], name="tempo di completamento" + str(i))
