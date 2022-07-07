@@ -37,9 +37,9 @@ def main():
     pTimes = [49, 37, 32, 2, 21, 9, 49, 12, 20, 4, 11, 5, 36, 78, 4, 55, 34, 19, 98, 76, 33]
     mu = []
 
-    m, total_pli = solver.solve_model(solver.pli_implementation(3, [1,2,3], [[1,0],[2,0]], 0)[0])
+    m, total_pli = solver.solve_model(solver.pli_implementation(10, [12,35,47,21,16,46,20,4,11,23], [[8,7],[6,1],[1,4]], 0)[0])
     t = time.time()
-    xz = branch_and_bound.bb_implementation(3, [1,2,3], [[1,0],[2,0]], [1,1])
+    xz = branch_and_bound.bb_implementation(10, [12,35,47,21,16,46,20,4,11,23], [[8,7],[6,1],[1,4]], [1,1,1])
     total = time.time() - t
                 # for i in range (5,16):
                 #     print("SIAMO AL JOB: "+str(i ))
@@ -85,7 +85,7 @@ def main():
     #
     print("CALCOLO CON BB")
     print(total)
-    print(xz[1])
+    print(xz)
     print("\n\n\n")
 
 

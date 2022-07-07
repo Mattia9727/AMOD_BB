@@ -13,7 +13,7 @@ def set_fixed_precedence(m, c, v, p):
     j = v[1]
     m.addConstr(c[0, j] - p[j] >= c[0, i], name="Vincolo di precedenza fissato "+str(i)+str(j))
 
-def get_relaxed_obj_func(c, x, v, mu_list):
+def get_relaxed_obj_func(c, v, lambda_list,p):
     vars = []
     mu_sum = 0
     for i in range(len(v)):
@@ -26,6 +26,7 @@ def get_relaxed_obj_func(c, x, v, mu_list):
     relax_vars = gp.LinExpr(mu_list, vars)
 
     return c.sum() + (relax_vars - mu_sum)
+
 
 def get_relaxed_obj_func_weight(lambda_list,constr,p):
     weight_c = []
@@ -52,7 +53,7 @@ def set_bigM(p):
 # n: numero di job
 # p: lista contenente i processing time dei job
 # v: vincoli di precedenza
-def pli_implementation(n, p, v, relax, mu_list=None):
+def pli_implementation(n, p, v, relax, lambda_list=None):
     M = set_bigM(p)
     try:
         # Create a new model
@@ -74,7 +75,7 @@ def pli_implementation(n, p, v, relax, mu_list=None):
         if relax == 0:
             m.setObjective(c.sum(), GRB.MINIMIZE)
         else:
-            m.setObjective(get_relaxed_obj_func(c, x, v, mu_list), GRB.MINIMIZE)
+            m.setObjective(get_relaxed_obj_func(c, x, v, lambda_list), GRB.MINIMIZE)
         for k in v:
             if relax == 0:
                 set_fixed_precedence(m, c, k, p)
@@ -82,7 +83,6 @@ def pli_implementation(n, p, v, relax, mu_list=None):
         for i in range(n):
             m.addConstr(c[0, i] >= p[i], name="tempo di completamento"+str(i))
             for j in range(n):
-
                 if i != j and x[i][j] is not None:
                     m.addConstr(c[0, j] >= c[0, i] + p[j] - (M * (1 - x[i][j])),
                                 name="precedenza di i su j " + str(i) + str(j))

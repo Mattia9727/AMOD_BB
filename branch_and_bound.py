@@ -2,7 +2,7 @@ from gurobipy import GRB
 import solver
 
 def sort(sub_li):
-    return (sorted(sub_li, key=lambda x: x[1]))
+    return (sorted(sub_li, reverse = True, key=lambda x: float(x[1])))
 
 # fixed: job già fissati
 def smith_rule(p,w,fixed):
@@ -66,34 +66,59 @@ def bb_implementation(n, p, v, lambda_list):
     xInc = None
     zInc = GRB.INFINITY
     # [] corrisponde alla root
+    # Lista dei prob da analizzare
     Q = [[]]
+    # Lista dei problemi analizzati e dei LB
+    Q_res = []
+    LB_root = GRB.INFINITY
     #Calcolo i valori per la funzione obiettivo rilassata
     weight_c, weight_p_sum = solver.get_relaxed_obj_func_weight(lambda_list, v, p)
     while Q != []:
         # Prende un problema da analizzare
         prob = Q.pop(0)
         # Risolvo il problema
-        xStar, zStar = solve_relaxed_problem(prob,p, weight_c, weight_p_sum)
-
+        xStar, zStarRL = solve_relaxed_problem(prob,p, weight_c, weight_p_sum)
+        if(prob == []):
+            LB_root = zStarRL
+        # Aggiungere a Q-res
+        if zStarRL != LB_root:
+            Q_res.append([prob, zStarRL])
+        # Calcolo il valore della soluzione
+        zStar = 0
+        c = 0
+        for job in xStar:
+            c += p[job]
+            zStar += c
         #Bounding
-        if(zStar < zInc):
+        if zStar < zInc:
             # Controllare se xStar è feasible per il problema originale
             if(is_feasible(xStar,v)):
                 # Aggiorniamo gli incumbent
                 xInc = xStar
                 zInc = zStar
-            else:
-                #Decomporre in sottoproblemi
-                for i in range(n):
-                    no_add = 0
-                    for j in prob:
-                        if i==j:
-                            no_add = 1
-                            break
-                    if no_add == 0:
-                        if not dominance_rule(prob,i,v):
-                            addProb = prob.copy()
-                            addProb.append(i)
-                            Q.append(addProb)
+                if zStar == LB_root:
+                    return [xInc, zInc]
+                # Controllo altri sottoproblemi in Q da potare
+                to_remove = []
+                for res in Q_res:
+                    if res[1] > zInc:
+                        to_remove.append(res)
+                        for pr in Q:
+                            if pr[:len(res[0])] == res[0]:
+                                Q.remove(pr)
+                for rem in to_remove:
+                    Q_res.remove(rem)
+        #Decomporre in sottoproblemi
+        for i in range(n):
+            no_add = 0
+            for j in prob:
+                if i==j:
+                    no_add = 1
+                    break
+            if no_add == 0:
+                if not dominance_rule(prob,i,v):
+                    addProb = prob.copy()
+                    addProb.append(i)
+                    Q.append(addProb)
     #print("RISULTATO BB: " + str(zInc))
     return [xInc, zInc]
