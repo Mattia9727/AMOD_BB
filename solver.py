@@ -68,8 +68,7 @@ def pli_implementation(n, p, v, relax, mu_list=None):
                     x[i].append(m.addVar(vtype=GRB.BINARY, name="x["+str(n*i+j)+"]"))
                 else:
                     x[i].append(None)
-        s = m.addMVar((1, n), lb=0, vtype=GRB.INTEGER, name="s")
-        c = m.addMVar((1, n), lb=0, vtype=GRB.CONTINUOUS, name="c")
+        c = m.addMVar((1, n), lb=0, vtype=GRB.INTEGER, name="c")
 
         # Funzione obiettivo: minimizzare somma tempi di completamento
         if relax == 0:
@@ -81,13 +80,15 @@ def pli_implementation(n, p, v, relax, mu_list=None):
                 set_fixed_precedence(m, c, k, p)
         # Vincoli
         for i in range(n):
-            m.addConstr(c[0, i] == s[0, i] + p[i], name="tempo di completamento" + str(i))
+            m.addConstr(c[0, i] >= p[i], name="tempo di completamento"+str(i))
             for j in range(n):
 
                 if i != j and x[i][j] is not None:
-                    m.addConstr(s[0, j] >= s[0, i] + p[i] - (M * (1-x[i][j])), name="precedenza di i su j " + str(i) + str(j))
-                    m.addConstr(s[0, i] >= s[0, j] + p[j] - (M * x[i][j]),   name="precedenza di j su i " + str(j) + str(i))
-        return m,x,s
+                    m.addConstr(c[0, j] >= c[0, i] + p[j] - (M * (1 - x[i][j])),
+                                name="precedenza di i su j " + str(i) + str(j))
+                    m.addConstr(c[0, i] >= c[0, j] + p[i] - (M * x[i][j]),
+                                name="precedenza di j su i " + str(j) + str(i))
+        return m,x
 
     except gp.GurobiError as e:
         print('Error code ' + str(e.errno) + ": " + str(e))

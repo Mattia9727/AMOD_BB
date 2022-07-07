@@ -52,13 +52,10 @@ def solve_relaxed_problem(problem, p, weight_c, weighted_p):
     # Calcolo il valore corrispondente alla soluzione trovata
     zStar = 0
     c = 0
-    c2 = 0
     for job in xStar:
-        c2 += c2 + p[job]
         c += p[job]
         zStar += (c* weight_c[job])
     zStar += weighted_p
-    print(c2)
     return xStar, zStar
 
 # xInc: Soluzione incumbent
