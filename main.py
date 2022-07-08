@@ -36,10 +36,12 @@ def main():
     header = ["#Job", "#Precedenze", "Lista mu", "Risultato PLI", "Risultato BB", "Tempo PLI", "Tempo BB"]
     pTimes = [49, 37, 32, 2, 21, 9, 49, 12, 20, 4, 11, 5, 36, 78, 4, 55, 34, 19, 98, 76, 33]
     mu = []
-
-    m, total_pli = solver.solve_model(solver.pli_implementation(10, [12,35,47,21,16,46,20,4,11,23], [[8,7],[6,1],[1,4]], 0)[0])
+    a,b = [12,35,47,21,16,46,20,4,11,23,4,11,23], [[8,7],[6,1],[1,4]]
     t = time.time()
-    xz = branch_and_bound.bb_implementation(10, [12,35,47,21,16,46,20,4,11,23], [[8,7],[6,1],[1,4]], [1,1,1])
+    m, total_pli = solver.pli_implementation(a,b)[0]
+    total_pli = time.time() - t
+    t = time.time()
+    xz = branch_and_bound.bb_implementation(a,b, [0,0,0])
     total = time.time() - t
                 # for i in range (5,16):
                 #     print("SIAMO AL JOB: "+str(i ))
