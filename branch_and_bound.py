@@ -19,6 +19,22 @@ def smith_rule(p,w,fixed):
     else:
         return "Error: different lengths"
 
+def get_relaxed_obj_func_weight(lambda_list,constr,p):
+    weight_c = []
+    weight_p = 0
+    for i in range(len(p)):
+        w = 1
+        for j in range(len(constr)):
+            v = constr[j]
+            if i == v[0]:
+                w += lambda_list[j]
+            elif i == v[1]:
+                w -= lambda_list[j]
+            if i == 0:
+                weight_p += p[v[1]] * lambda_list[j]
+        weight_c.append(w)
+    return weight_c, weight_p
+
 def is_feasible(x,v):
     for constr in v:
         idx_0 = x.index(constr[0])
@@ -62,7 +78,8 @@ def solve_relaxed_problem(problem, p, weight_c, weighted_p):
 # zInc: Valore della soluzione incumbent
 # Q   : Coda nodi foglia attivi
 # m   : Problema corrente
-def bb_implementation(n, p, v, lambda_list):
+def bb_implementation(p, v, lambda_list):
+    n = len(p)
     xInc = None
     zInc = GRB.INFINITY
     # [] corrisponde alla root
@@ -71,7 +88,7 @@ def bb_implementation(n, p, v, lambda_list):
     # Lista dei problemi analizzati e dei LB
     LB_root = GRB.INFINITY
     #Calcolo i valori per la funzione obiettivo rilassata
-    weight_c, weight_p_sum = solver.get_relaxed_obj_func_weight(lambda_list, v, p)
+    weight_c, weight_p_sum = get_relaxed_obj_func_weight(lambda_list, v, p)
     count=0
     while Q != []:
         # Prende un problema da analizzare
