@@ -67,22 +67,25 @@ def bb_implementation(n, p, v, lambda_list):
     zInc = GRB.INFINITY
     # [] corrisponde alla root
     # Lista dei prob da analizzare
-    Q = [[]]
+    Q = [[[], GRB.INFINITY]]
     # Lista dei problemi analizzati e dei LB
-    Q_res = []
     LB_root = GRB.INFINITY
     #Calcolo i valori per la funzione obiettivo rilassata
     weight_c, weight_p_sum = solver.get_relaxed_obj_func_weight(lambda_list, v, p)
+    count=0
     while Q != []:
         # Prende un problema da analizzare
         prob = Q.pop(0)
+        if prob[1] > zInc:
+            continue
+        count +=1
         # Risolvo il problema
-        xStar, zStarRL = solve_relaxed_problem(prob,p, weight_c, weight_p_sum)
-        if(prob == []):
+        xStar, zStarRL = solve_relaxed_problem(prob[0], p, weight_c, weight_p_sum)
+        if(prob[0] == []):
             LB_root = zStarRL
         # Aggiungere a Q-res
-        if zStarRL != LB_root:
-            Q_res.append([prob, zStarRL])
+        # if zStarRL != LB_root:
+        #     Q_res.append([prob[0], zStarRL])
         # Calcolo il valore della soluzione
         zStar = 0
         c = 0
@@ -98,27 +101,20 @@ def bb_implementation(n, p, v, lambda_list):
                 zInc = zStar
                 if zStar == LB_root:
                     return [xInc, zInc]
-                # Controllo altri sottoproblemi in Q da potare
-                to_remove = []
-                for res in Q_res:
-                    if res[1] > zInc:
-                        to_remove.append(res)
-                        for pr in Q:
-                            if pr[:len(res[0])] == res[0]:
-                                Q.remove(pr)
-                for rem in to_remove:
-                    Q_res.remove(rem)
-        #Decomporre in sottoproblemi
+    #Decomporre in sottoproblemi
         for i in range(n):
             no_add = 0
-            for j in prob:
+            for j in prob[0]:
                 if i==j:
                     no_add = 1
                     break
             if no_add == 0:
-                if not dominance_rule(prob,i,v):
-                    addProb = prob.copy()
-                    addProb.append(i)
+                if not dominance_rule(prob[0],i,v):
+                    addProb = []
+                    addProb.append(prob[0].copy())
+                    addProb[0].append(i)
+                    addProb.append(zStarRL)
                     Q.append(addProb)
     #print("RISULTATO BB: " + str(zInc))
+    print(count)
     return [xInc, zInc]
