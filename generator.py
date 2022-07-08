@@ -1,5 +1,20 @@
 import random
 
+def checkCicli(precs):
+    for n in range(len(precs)):
+        circleList = []
+        circleList.append(precs[n])
+        before = 0
+        for i in range(len(precs)):
+            if circleList[before][1] == precs[i][0]:
+                circleList.append(precs[i])
+                before += 1
+                for j in range(len(circleList)):
+                    if precs[i][1] == circleList[j][0]:
+                        return 1
+    return 0
+
+
 def generation(N,n,k,mod=0,value1=0,value2=0):
     if n<=k:
         print("Ci sono cicli.")
@@ -25,6 +40,9 @@ def generation(N,n,k,mod=0,value1=0,value2=0):
                 if (prec[0] != prec[1]) and (prec not in precs) and (neg_prec not in precs):
                     precs.append(prec)
                     j+=1
+            #Check presenza di cicli
+            if checkCicli(precs):
+                generation(N, n, k, mod, value1)
 
         elif mod == 1:
             while j<k:
@@ -46,36 +64,18 @@ def generation(N,n,k,mod=0,value1=0,value2=0):
 
                         if j>=k:
                             break
-        elif mod == 2:
-            for j in range(int(k/value1)):
-                for l in range(value1):
-                    prec = [j*value1+l+j, j*value1+l+1+j]
-                    precs.append(prec)
-            for j in range(k%value1):
-                prec = [random.randint(0, n - 1), random.randint(0, n - 1)]
-                neg_prec = [prec[1], prec[0]]
-                if (prec[0] != prec[1]) and (prec not in precs) and (neg_prec not in precs):
-                    precs.append(prec)
-                else:
-                    j-=1
-
-
-
-
-
-        # GENERAZIONE DI k PRECEDENZE A CATENE DI DIMENSIONE value1 (es: value1 = 4 --> genero catena di 4 job)
-        elif mod == 1:
-            while j < k:
-                prec = [random.randint(0, n - 1), random.randint(0, n - 1)]
-                nPrec = [prec[1], prec[0]]
-                if prec[0] != prec[1] and prec not in precs and nPrec not in precs:
-                    precs.append(prec)
-
-
-
-        # GENERAZIONE DI k PRECEDENZE CON value1 CATENE DIVERSE
-        elif mod == 2:
-            pass
+        # elif mod == 2:
+        #     for j in range(int(k/value1)):
+        #         for l in range(value1):
+        #             prec = [j*value1+l+j, j*value1+l+1+j]
+        #             precs.append(prec)
+        #     for j in range(k%value1):
+        #         prec = [random.randint(0, n - 1), random.randint(0, n - 1)]
+        #         neg_prec = [prec[1], prec[0]]
+        #         if (prec[0] != prec[1]) and (prec not in precs) and (neg_prec not in precs):
+        #             precs.append(prec)
+        #         else:
+        #             j-=1
 
 
         with open('instances.txt', 'a') as file:
@@ -92,7 +92,7 @@ def generation(N,n,k,mod=0,value1=0,value2=0):
             file.write("\n")
         file.close()
 
-    return N
+    exit()
 
 #Prende lista di precedenze sul file ed esegue parsing in lista di liste di due interi, che rappresentano la relazione "i precede j"
 def parse_prec(p):
@@ -131,9 +131,10 @@ def lambda_gen(n):
     return ret_list
 
 def main():
-    generation(1, 13, 8, 2, 3)
+    generation(1, 13, 8, 0)
 
 if __name__ == "__main__":
-    main()
+    #main()
+    print(checkCicli([[1,0],[0,3],[5,8],[0,6],[3,6],[1,0],[0,9],[1,5],[0,6]]))
 
 
