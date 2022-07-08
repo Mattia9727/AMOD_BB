@@ -44,7 +44,7 @@ def pli_implementation(p, v):
     M = set_bigM(p)
     try:
         env = gp.Env()
-        m = gp.Model("scheduling",env=env)
+        m = gp.Model("1|prec|sum(Ci)",env=env)
         # x[i,j]=1 significa che i precede j
         x=[]
         for i in range(n):
@@ -59,7 +59,9 @@ def pli_implementation(p, v):
         # Funzione obiettivo: minimizzare somma tempi di completamento
         m.setObjective(c.sum(), GRB.MINIMIZE)
         for k in v:
-            set_fixed_precedence(m, c, k, p)
+            i = k[0]
+            j = k[1]
+            m.addConstr(c[0, j] - p[j] >= c[0, i], name="Vincolo di precedenza fissato " + str(i) + str(j))
         # Vincoli
         for i in range(n):
             m.addConstr(c[0, i] >= p[i], name="tempo di completamento"+str(i))
