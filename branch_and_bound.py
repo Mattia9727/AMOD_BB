@@ -1,5 +1,10 @@
+import time
+
 from gurobipy import GRB
+
+import constants
 import solver
+
 
 def sort(sub_li):
     return (sorted(sub_li, reverse = True, key=lambda x: float(x[1])))
@@ -90,7 +95,9 @@ def bb_implementation(p, v, lambda_list):
     #Calcolo i valori per la funzione obiettivo rilassata
     weight_c, weight_p_sum = get_relaxed_obj_func_weight(lambda_list, v, p)
     count=0
-    while Q != []:
+    t = time.time()
+    t2 = time.time()+10
+    while Q != [] and t2-t<= constants.COMPUTATION_TIME:
         # Prende un problema da analizzare
         prob = Q.pop(0)
         if prob[1] > zInc:
@@ -132,6 +139,7 @@ def bb_implementation(p, v, lambda_list):
                     addProb[0].append(i)
                     addProb.append(zStarRL)
                     Q.append(addProb)
+        t2 = time.time()
     #print("RISULTATO BB: " + str(zInc))
     print(count)
-    return [xInc, zInc]
+    return [xInc, zInc, t2-t > constants.COMPUTATION_TIME]
