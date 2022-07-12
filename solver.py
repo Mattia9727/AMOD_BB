@@ -3,6 +3,8 @@ from pprint import pprint
 
 import gurobipy as gp
 from gurobipy import GRB
+
+import constants
 import generator
 
 # m: gurobi model
@@ -72,10 +74,12 @@ def pli_implementation(p, v):
                     m.addConstr(c[0, i] >= c[0, j] + p[i] - (M * x[i][j]),
                                 name="precedenza di j su i " + str(j) + str(i))
 
+        m.setParam("TimeLimit", constants.COMPUTATION_TIME)
+
         t = time.time()
         m.optimize()
         total = time.time() - t
-        return m, total
+        return m.ObjVal, m.ObjBound, m.MIPGap, total
 
     except gp.GurobiError as e:
         print('Error code ' + str(e.errno) + ": " + str(e))

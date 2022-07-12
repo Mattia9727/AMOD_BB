@@ -131,10 +131,10 @@ def lambda_gen(n):
     return ret_list
 
 def main():
-    generation(1, 13, 8, 0)
+    generation(1, 13, 6, 0)
 
 if __name__ == "__main__":
-    #main()
-    print(checkCicli([[1,0],[0,3],[5,8],[0,6],[3,6],[1,0],[0,9],[1,5],[0,6]]))
+    main()
+    # print(checkCicli([[1,0],[0,3],[5,8],[0,6],[3,6],[1,0],[0,9],[1,5],[0,6]]))
 
 
