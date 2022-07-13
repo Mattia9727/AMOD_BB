@@ -88,7 +88,7 @@ def bb_implementation(p, v, lambda_list):
     xInc = None
     zInc = GRB.INFINITY
     # [] corrisponde alla root
-    # Lista dei prob da analizzare
+    # Lista dei prob da analizzare, con associato il LB del padre
     Q = [[[], GRB.INFINITY]]
     # Lista dei problemi analizzati e dei LB
     LB_root = GRB.INFINITY
@@ -100,16 +100,14 @@ def bb_implementation(p, v, lambda_list):
     while Q != [] and t2-t<= constants.COMPUTATION_TIME:
         # Prende un problema da analizzare
         prob = Q.pop(0)
+        # Se il LB del padre è maggiore di zInc, chiudo il problema
         if prob[1] > zInc:
             continue
         count +=1
-        # Risolvo il problema
+        # Risolvo il rilassamento lagrangiano del problema
         xStar, zStarRL = solve_relaxed_problem(prob[0], p, weight_c, weight_p_sum)
         if(prob[0] == []):
             LB_root = zStarRL
-        # Aggiungere a Q-res
-        # if zStarRL != LB_root:
-        #     Q_res.append([prob[0], zStarRL])
         # Calcolo il valore della soluzione
         zStar = 0
         c = 0
