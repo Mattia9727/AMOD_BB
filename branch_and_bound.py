@@ -165,4 +165,4 @@ def bb_implementation(p, v, lambda_list):
         t2 = time.time()
     # print("RISULTATO BB: " + str(zInc))
     print(count)
-    return [xInc, zInc, t2 - t > constants.COMPUTATION_TIME]
+    return [xInc, zInc, t2 - t]
