@@ -124,7 +124,7 @@ def bb_implementation(p, v, lambda_list):
         count += 1
         # Risolvo il problema
         xStar, zStarRL = solve_relaxed_problem(prob[0], p, weight_c, weight_p_sum)
-        LB_root = zStarRL
+        LB_root = prob[1]
         # Aggiungere a Q-res
         # if zStarRL != LB_root:
         #     Q_res.append([prob[0], zStarRL])
@@ -160,8 +160,6 @@ def bb_implementation(p, v, lambda_list):
                     # addProb.append(zStarRL)
                     new_node = Node(addProb, zStarRL)
                     insort(Q, new_node, key=by_lb)
-
-
                     # Q.insert(0,addProb)
 
         t2 = time.time()
