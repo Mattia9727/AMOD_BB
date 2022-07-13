@@ -15,7 +15,7 @@ def checkCicli(precs):
     return 0
 
 
-def generation(N,n,k,mod=0,value1=0,value2=0):
+def generation(N, n, k, var=0, mod=0, value1=0, value2=0):
     if n<=k:
         print("Ci sono cicli.")
         return
@@ -29,7 +29,10 @@ def generation(N,n,k,mod=0,value1=0,value2=0):
         Pi = []
         precs = []
         for j in range(n):
-            Pi.append(random.randint(1,50))
+            if var == 0:
+                Pi.append(random.randint(400, 600))
+            else:
+                Pi.append(random.randint(1, 1000))
 
         j=0
         # GENERAZIONE RANDOM DI k PRECEDENZE
@@ -131,7 +134,7 @@ def lambda_gen(n):
     return ret_list
 
 def main():
-    generation(1, 13, 6, 0)
+    generation(1, 13, 6, 0, 0)
 
 if __name__ == "__main__":
     main()

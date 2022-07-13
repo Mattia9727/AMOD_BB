@@ -60,6 +60,7 @@ def pli_implementation(p, v):
 
         # Funzione obiettivo: minimizzare somma tempi di completamento
         m.setObjective(c.sum(), GRB.MINIMIZE)
+
         for k in v:
             i = k[0]
             j = k[1]
