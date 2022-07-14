@@ -70,7 +70,7 @@ def ammissible(v,n):
 
 def main():
     # t = time.time()
-    header = ["#Job", "#Precedenze", "Lista mu", "Risultato PLI", "Risultato BB", "Tempo PLI", "Tempo BB"]
+    header = ["#Job", "#Precedenze", "Lista mu", "Risultato PLI", "Bound PLI", "Gap PLI", "Risultato BB", "Gap BB", "Tempo PLI", "Tempo BB"]
     pTimes = [49, 37, 32, 2, 21, 9, 49, 12, 20, 4, 11, 5, 36, 78, 4, 55, 34, 19, 98, 76, 33]
     mu = []
     a, b = [12, 35, 47, 21, 16, 46, 20, 4, 11, 23, 4, 11], [[8, 7], [6, 1], [1, 4]]
@@ -86,42 +86,52 @@ def main():
     # total = time.time() - t
 
     # print("SIAMO AL JOB: "+str(i))
-    pr_time_list= []
+    pr_time_list = []
     prec_list = []
 
-    txt_file = "instances_20_10_1.txt"
-    csv_file = "instances_20_10_1.csv"
+    txt_files = ["instances_5_3_1.txt","instances_6_3_0.txt",
+                "instances_7_1_1.txt","instances_8_1_0.txt",
+                "instances_20_10_1.txt","instances_21_10_0.txt",
+                "instances_22_5_1.txt","instances_23_5_0.txt",]
 
-    with open(csv_file, 'w', encoding='UTF8') as f:
-        f.close()
+    csv_files = ["instances_5_3_1.csv","instances_6_3_0.csv",
+                "instances_7_1_1.csv","instances_8_1_0.csv",
+                "instances_20_10_1.csv","instances_21_10_0.csv",
+                "instances_22_5_1.csv","instances_23_5_0.csv",]
 
-    import csv
-    with open(csv_file, 'a', encoding='UTF8') as f:
-        writer = csv.writer(f)
-        # write the header
-        writer.writerow(header)
+    for n in range(len(txt_files)):
+        txt_file = txt_files[n]
+        csv_file = csv_files[n]
+        with open(csv_file, 'w', encoding='UTF8') as f:
+            f.close()
 
-    with open(txt_file, "r", encoding='UTF8') as instances:
-        pr_time_list = generator.parse_pr_time(instances.readline())
-        prec_list = generator.parse_prec(instances.readline())
-        pr_time = instances.readline()
-        for i in range(len(prec_list)):
-            mu.append(1)
-        while pr_time:
-            prec = instances.readline()
-            pr_time_list = generator.parse_pr_time(pr_time)
-            prec_list = generator.parse_prec(prec)
-            # mu = generator.mu_gen(len(prec_list))
-            objVal, objBound, gap, total_pli = solver.pli_implementation(pr_time_list, prec_list)
-            x,z,total_bb = branch_and_bound.bb_implementation(pr_time_list, prec_list, mu)
+        import csv
+        with open(csv_file, 'a', encoding='UTF8') as f:
+            writer = csv.writer(f)
+            # write the header
+            writer.writerow(header)
+
+        with open(txt_file, "r", encoding='UTF8') as instances:
+            # pr_time_list = generator.parse_pr_time(instances.readline())
+            # prec_list = generator.parse_prec(instances.readline())
             pr_time = instances.readline()
+            for i in range(len(prec_list)):
+                mu.append(1)
+            while pr_time:
+                prec = instances.readline()
+                pr_time_list = generator.parse_pr_time(pr_time)
+                prec_list = generator.parse_prec(prec)
+                # mu = generator.mu_gen(len(prec_list))
+                objVal, objBound, gap_pli, total_pli = solver.pli_implementation(pr_time_list, prec_list)
+                x,z,total_bb, gap_bb = branch_and_bound.bb_implementation(pr_time_list, prec_list, mu)
+                pr_time = instances.readline()
 
-            data = [len(pr_time_list), len(prec_list), str(mu), objVal, objBound, gap, z, total_pli, total_bb]
+                data = [len(pr_time_list), len(prec_list), str(mu), objVal, objBound, gap_pli, z, gap_bb, total_pli, total_bb]
 
-            with open(csv_file, 'a', encoding='UTF8') as f:
-                writer = csv.writer(f)
-                # write the data
-                writer.writerow(data)
+                with open(csv_file, 'a', encoding='UTF8') as f:
+                    writer = csv.writer(f)
+                    # write the data
+                    writer.writerow(data)
 
     # total_pli = solver.solve_model(solver.pli_implementation(10, [12,35,47,21,16,46,20,4,11,23], [[8,7],[6,1],[1,4]], 0)[0])[1]
     # total = time.time() - t
@@ -138,11 +148,6 @@ def main():
     # print("CALCOLO CON BB")
     # print(total)
     # print(xz)
-
-
-
-
-
 
 if __name__ == "__main__":
     main()

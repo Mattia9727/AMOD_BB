@@ -15,7 +15,7 @@ def checkCicli(precs):
     return 0
 
 
-def generation(N, n, k, var=0, mod=0, value1=0, value2=0):
+def generation(N, n, k, var=0, mod=0, c=0):
     if n<=k:
         print("Ci sono cicli.")
         return
@@ -30,9 +30,9 @@ def generation(N, n, k, var=0, mod=0, value1=0, value2=0):
         precs = []
         for j in range(n):
             if var == 0:
-                Pi.append(random.randint(400, 600))
+                Pi.append(random.randint(40, 60))
             else:
-                Pi.append(random.randint(1, 1000))
+                Pi.append(random.randint(1, 100))
 
         j=0
         # GENERAZIONE RANDOM DI k PRECEDENZE
@@ -55,7 +55,7 @@ def generation(N, n, k, var=0, mod=0, value1=0, value2=0):
                 if prec not in precs and [prec[0]+1,prec[1]+1] not in precs and [prec[0]-1,prec[1]-1] not in precs:
                     precs.append(prec)
                     j += 1
-                    for l in range(value1):
+                    for l in range(c-1):
                         if prec[1] == n-1:
                             if ([prec[0]-1-l, prec[0]-l] not in precs):
                                 precs.append([prec[0]-1-l, prec[0]-l])
@@ -68,19 +68,6 @@ def generation(N, n, k, var=0, mod=0, value1=0, value2=0):
 
                         if j>=k:
                             break
-        # elif mod == 2:
-        #     for j in range(int(k/value1)):
-        #         for l in range(value1):
-        #             prec = [j*value1+l+j, j*value1+l+1+j]
-        #             precs.append(prec)
-        #     for j in range(k%value1):
-        #         prec = [random.randint(0, n - 1), random.randint(0, n - 1)]
-        #         neg_prec = [prec[1], prec[0]]
-        #         if (prec[0] != prec[1]) and (prec not in precs) and (neg_prec not in precs):
-        #             precs.append(prec)
-        #         else:
-        #             j-=1
-
 
         with open('instances_'+str(n)+'_'+str(k)+'_'+str(var)+'.txt', 'a') as file:
             for j in range(n):
@@ -135,14 +122,15 @@ def lambda_gen(n):
     return ret_list
 
 def main():
-    generation(10, 20, 10, 1)
-    generation(10, 21, 10, 0)
-    generation(10, 22, 5, 1)
-    generation(10, 23, 5, 0)
-    generation(10, 5, 3, 1)
-    generation(10, 6, 3, 0)
-    generation(10, 7, 1, 1)
-    generation(10, 8, 1, 0)
+    # generation(10, 20, 10, 1)
+    # generation(10, 21, 10, 0)
+    # generation(10, 22, 5, 1)
+    # generation(10, 23, 5, 0)
+    # generation(10, 5, 3, 1)
+    # generation(10, 6, 3, 0)
+    # generation(10, 7, 1, 1)
+    # generation(10, 8, 1, 0)
+    generation(20,20,15,1,1,5)
 
 if __name__ == "__main__":
     main()

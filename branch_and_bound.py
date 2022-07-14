@@ -47,7 +47,7 @@ def get_relaxed_obj_func_weight(lambda_list, constr, p):
     return weight_c, weight_p
 
 
-def is_feasible(x, v):
+def is_solution_feasible(x, v):
     for constr in v:
         idx_0 = x.index(constr[0])
         idx_1 = x.index(constr[1])
@@ -59,7 +59,7 @@ def is_feasible(x, v):
 # prob: il problema in analisi
 # i: il job da aggiungere a prob se non vale la regola di dominanza
 # v: vincoli di precedenza
-def dominance_rule(prob, i, v):
+def is_new_problem_feasible(prob, i, v):
     job_in_constr = []
     for prec in v:
         if i == prec[1]:
@@ -97,72 +97,45 @@ def bb_implementation(p, v, lambda_list):
     n = len(p)
     xInc = None
     zInc = GRB.INFINITY
-    # [] corrisponde alla root
     Node = namedtuple('Node', ('fixed_schedule', 'father_lb'))
     by_lb = attrgetter('father_lb')
-    # Lista dei prob da analizzare
-    Q = [Node([], GRB.INFINITY)]
+    Q = [Node([], GRB.INFINITY)]                                                    # Lista dei prob da analizzare
     Q.sort(key=by_lb)
-    # Lista dei problemi analizzati e dei LB
-    LB_root = GRB.INFINITY
-    feasibleList = []
-    # Calcolo i valori per la funzione obiettivo rilassata
-    weight_c, weight_p_sum = get_relaxed_obj_func_weight(lambda_list, v, p)
-    count = 0
+    weight_c, weight_p_sum = get_relaxed_obj_func_weight(lambda_list, v, p)         # Calcolo i valori per la funzione obiettivo rilassata
     t = time.time()
     t2 = time.time()
-
-
     while Q != [] and t2 - t <= constants.COMPUTATION_TIME:
-        # Prende un problema da analizzare
-        prob = Q.pop(0)
-        # Se il LB del padre è maggiore di zInc, chiudo il problema
-        if prob[1] > zInc:
+        prob = Q.pop(0)                                                             # Prende un problema da analizzare
+        if prob[1] > zInc:                                                          # Se il LB del padre è maggiore di zInc, chiudo il problema
             continue
-        count +=1
-        # Risolvo il rilassamento lagrangiano del problema
-        count += 1
-        # Risolvo il problema
-        xStar, zStarRL = solve_relaxed_problem(prob[0], p, weight_c, weight_p_sum)
+        xStar, zStarRL = solve_relaxed_problem(prob[0], p, weight_c, weight_p_sum)  # Risolvo il rilassamento lagrangiano del problema
         LB_root = prob[1]
-        # Aggiungere a Q-res
-        # if zStarRL != LB_root:
-        #     Q_res.append([prob[0], zStarRL])
-        # Calcolo il valore della soluzione
-        zStar = 0
+        zStar = 0                                                                   # Calcolo il valore della soluzione
         c = 0
-        for job in xStar:
-            c += p[job]
-            zStar += c
-        # Bounding
-        if zStar < zInc:
-            # Controllare se xStar è feasible per il problema originale
-            if (is_feasible(xStar, v)):
-                # Aggiorniamo gli incumbent
-                feasibleList.insert(0,[xStar, zStar])
+        if (is_solution_feasible(xStar, v)):                                        # Controllare se xStar è feasible per il problema originale
+            for job in xStar:
+                c += p[job]
+                zStar += c
+            if zStar < zInc:                                                        # Aggiorniamo gli incumbent
                 xInc = xStar
                 zInc = zStar
                 if zStar == LB_root:
-                    print("AO")
                     return [xInc, zInc]
-        # Decomporre in sottoproblemi
-        for i in range(n):
+        for i in range(n):                                                          # Decomporre in sottoproblemi
             no_add = 0
             for j in prob[0]:
                 if i == j:
                     no_add = 1
                     break
             if no_add == 0:
-                if not dominance_rule(prob[0], i, v):
+                if not is_new_problem_feasible(prob[0], i, v):
+                    # Branching
                     addProb = prob[0].copy()
-                    #addProb.append(prob[0].copy())
                     addProb.append(i)
-                    # addProb.append(zStarRL)
                     new_node = Node(addProb, zStarRL)
                     insort(Q, new_node, key=by_lb)
-                    # Q.insert(0,addProb)
-
         t2 = time.time()
-    # print("RISULTATO BB: " + str(zInc))
-    print(count)
-    return [xInc, zInc, t2 - t]
+    gap = 0
+    if t2-t>=constants.COMPUTATION_TIME:
+        gap = (xInc - LB_root)/LB_root
+    return [xInc, zInc, t2 - t, gap]
