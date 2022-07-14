@@ -8,65 +8,6 @@ import branch_and_bound
 import generator
 import solver
 
-def ammissible(v,n):
-    amm_list = []
-    v_copy = v.copy()
-    amm_list.append(v_copy[0])
-    br=0
-    for constr in v_copy:
-        new_ins = 1
-        if constr == v_copy[0]:
-            continue
-        for amm in amm_list:
-            if br==1:
-                break
-            br=0
-            if constr == amm:
-                break
-            if (constr[0] in amm) or (constr[1] in amm):
-                new_ins = 0
-                found = -1
-                foundi=-1
-                for i in amm_list:
-                    if constr==i:
-                        continue
-                    if constr[0] in i:
-                        br = 1
-                        if found != -1:
-                            for j in amm_list[found]:
-                                i.insert(foundi+1,j)
-                                foundi+=1
-                            amm_list.pop(found)
-                        else:
-                            i.insert(i.index(constr[0]) + 1, constr[1])
-                            found = amm_list.index(i)
-                            foundi=i.index(constr[1])
-                    elif constr[1] in i:
-                        br = 1
-                        if found != -1:
-                            for j in amm_list[found]:
-                                i.insert(foundi,j)
-                                foundi+=1
-                            amm_list.pop(found)
-                        else:
-                            i.insert(i.index(constr[1]), constr[0])
-                            found = amm_list.index(i)
-                            foundi=i.index(constr[0])
-            br = 0
-        if new_ins == 1:
-            amm_list.append(constr)
-
-    ret_list = []
-    for i in amm_list:
-        for j in i:
-            if j not in ret_list:
-                ret_list.append(j)
-    for i in range(n):
-        if i not in ret_list:
-            ret_list.append(i)
-    return ret_list
-
-
 
 def main():
     # t = time.time()
