@@ -3,7 +3,7 @@ from bisect import bisect, insort, insort_left
 from collections import namedtuple
 from operator import attrgetter
 from pprint import pprint
-
+from numpy import linalg
 from gurobipy import GRB
 
 import constants
@@ -55,7 +55,6 @@ def is_feasible(x, v):
             return 0
     return 1
 
-
 # prob: il problema in analisi
 # i: il job da aggiungere a prob se non vale la regola di dominanza
 # v: vincoli di precedenza
@@ -82,12 +81,81 @@ def solve_relaxed_problem(problem, p, weight_c, weighted_p):
     # Calcolo il valore corrispondente alla soluzione trovata
     zStar = 0
     c = 0
+    cStar = []
     for job in xStar:
         c += p[job]
+        cStar.append(c)
         zStar += (c * weight_c[job])
     zStar += weighted_p
-    return xStar, zStar
+    return xStar, cStar, zStar
 
+def get_feasible_solution(v, p):
+    solution = []
+    for i in range(len(p)):
+        solution.append(i)
+    for i in range(len(v)):
+        feasible = True
+        for constr in v:
+            before = constr[0]
+            after = constr[1]
+            idx_before = solution.index(before)
+            idx_after = solution.index(after)
+            if idx_before > idx_after:
+                solution.remove(before)
+                solution.insert(max(0, idx_after-1), before)
+                feasible = False
+        if feasible:
+            break
+    c_sum = 0
+    c = 0
+    for job in solution:
+        c = c + p[job]
+        c_sum += c
+    return c_sum
+
+def subgradiente(prob, p, lambda_list, v):
+    k = 50
+    h = 1
+    z_feasible = get_feasible_solution(v, p)
+    lambda_inc = [3,1,5,3,2,4,1,1]
+    lambda_list = lambda_inc.copy()
+    lowerbound_inc = -GRB.INFINITY
+    omega = 1
+    epsilon = 1/32
+    # w_c, w_p = get_relaxed_obj_func_weight([0]*len(v), v, p)
+    # l_lambda_prec = solve_relaxed_problem(prob, p, w_c, w_p)[2]
+    # l_lambda_curr = None
+    while h < k:
+        w_c, w_p = get_relaxed_obj_func_weight(lambda_list, v, p)
+        # if l_lambda_curr is not None:
+        #     l_lambda_prec = l_lambda_curr
+        c_star, l_lambda_curr = solve_relaxed_problem(prob, p, w_c, w_p)[1:]
+
+        if lowerbound_inc < l_lambda_curr:
+            print("AGGIORNO DA " + str(lowerbound_inc)+ " A "+str(l_lambda_curr))
+            lowerbound_inc = l_lambda_curr
+            lambda_inc = lambda_list.copy()
+            h = 1
+        else:
+            h = h+1
+       # print("LOWER BOUND " + str(l_lambda_curr))
+        s = []
+        is_zero = True
+        for constr in v:
+            subgrad = p[constr[1]] - c_star[constr[1]] + c_star[constr[0]]
+            s.append(subgrad)
+            if is_zero and subgrad != 0:
+                is_zero = False
+        if is_zero:
+            break
+        #norma = linalg.norm(s)
+        #omega = (z_feasible - l_lambda_curr) / (norma * norma)
+        for i in range(len(lambda_list)):
+            lambda_list[i] = max(0,lambda_list[i] + ((omega * s[i])))
+        omega = omega/2
+        if omega < epsilon:
+            break
+    return lambda_inc
 
 # xInc: Soluzione incumbent
 # zInc: Valore della soluzione incumbent
@@ -104,30 +172,21 @@ def bb_implementation(p, v, lambda_list):
     Q = [Node([], GRB.INFINITY)]
     Q.sort(key=by_lb)
     # Lista dei problemi analizzati e dei LB
-    LB_root = GRB.INFINITY
-    feasibleList = []
+    LB_current = GRB.INFINITY
     # Calcolo i valori per la funzione obiettivo rilassata
     weight_c, weight_p_sum = get_relaxed_obj_func_weight(lambda_list, v, p)
-    count = 0
     t = time.time()
     t2 = time.time()
-
 
     while Q != [] and t2 - t <= constants.COMPUTATION_TIME:
         # Prende un problema da analizzare
         prob = Q.pop(0)
         # Se il LB del padre è maggiore di zInc, chiudo il problema
-        if prob[1] > zInc:
+        if prob[1] >= zInc:
             continue
-        count +=1
         # Risolvo il rilassamento lagrangiano del problema
-        count += 1
-        # Risolvo il problema
-        xStar, zStarRL = solve_relaxed_problem(prob[0], p, weight_c, weight_p_sum)
-        LB_root = prob[1]
-        # Aggiungere a Q-res
-        # if zStarRL != LB_root:
-        #     Q_res.append([prob[0], zStarRL])
+        xStar, cStar, zStarRL = solve_relaxed_problem(prob[0], p, weight_c, weight_p_sum)
+        LB_current = prob[1]
         # Calcolo il valore della soluzione
         zStar = 0
         c = 0
@@ -139,12 +198,11 @@ def bb_implementation(p, v, lambda_list):
             # Controllare se xStar è feasible per il problema originale
             if (is_feasible(xStar, v)):
                 # Aggiorniamo gli incumbent
-                feasibleList.insert(0,[xStar, zStar])
                 xInc = xStar
                 zInc = zStar
-                if zStar == LB_root:
-                    print("AO")
-                    return [xInc, zInc]
+                if zStar == LB_current:
+                    t2 = time.time()
+                    return [xInc, zInc, t2 - t > constants.COMPUTATION_TIME]
         # Decomporre in sottoproblemi
         for i in range(n):
             no_add = 0
@@ -155,14 +213,9 @@ def bb_implementation(p, v, lambda_list):
             if no_add == 0:
                 if not dominance_rule(prob[0], i, v):
                     addProb = prob[0].copy()
-                    #addProb.append(prob[0].copy())
                     addProb.append(i)
-                    # addProb.append(zStarRL)
                     new_node = Node(addProb, zStarRL)
                     insort(Q, new_node, key=by_lb)
-                    # Q.insert(0,addProb)
-
         t2 = time.time()
     # print("RISULTATO BB: " + str(zInc))
-    print(count)
     return [xInc, zInc, t2 - t > constants.COMPUTATION_TIME]

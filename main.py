@@ -11,6 +11,7 @@ import solver
 
 
 def main():
+
     t = time.time()
     file = open("instances.txt","r")
     # pr_time_list = generator.parse_pr_time(file.readline())
@@ -37,7 +38,8 @@ def main():
     header = ["#Job", "#Precedenze", "Lista mu", "Risultato PLI", "Risultato BB", "Tempo PLI", "Tempo BB"]
     pTimes = [49, 37, 32, 2, 21, 9, 49, 12, 20, 4, 11, 5, 36, 78, 4, 55, 34, 19, 98, 76, 33]
     mu = []
-    a,b = [12,35,47,21,16,46,20,4,11,23,4,11], [[8,7],[6,1],[1,4]]
+    a,b = [13,2,7,2,43,21,11,4,16,47,11,45,13], [[8,5],[4,9],[5,9],[1,7],[2,5],[1,8],[0,4],[7,12]]
+    #a,b = [3,12,4,9,5], [[2,3],[0,1],[4,1]]
     t = time.time()
     objVal, objBound, gap, total_pli = solver.pli_implementation(a,b)
     total_pli = time.time() - t
