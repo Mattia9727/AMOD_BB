@@ -55,6 +55,7 @@ def is_feasible(x, v):
             return 0
     return 1
 
+
 # prob: il problema in analisi
 # i: il job da aggiungere a prob se non vale la regola di dominanza
 # v: vincoli di precedenza
