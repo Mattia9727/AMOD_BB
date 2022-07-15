@@ -20,7 +20,7 @@ def generation(N, n, k, var=0, mod=0, c=0):
         print("Ci sono cicli.")
         return
 
-    with open('instances_'+str(n)+'_'+str(k)+'_'+str(var)+'.txt', 'w') as file:
+    with open('instances\instances_'+str(n)+'_'+str(k)+'_'+str(var)+'.txt', 'w') as file:
         file.close()
 
 
@@ -69,7 +69,7 @@ def generation(N, n, k, var=0, mod=0, c=0):
                         if j>=k:
                             break
 
-        with open('instances_'+str(n)+'_'+str(k)+'_'+str(var)+'.txt', 'a') as file:
+        with open('instances\\instances_'+str(n)+'_'+str(k)+'_'+str(var)+'.txt', 'a') as file:
             for j in range(n):
                 file.write(str(Pi[j]))
                 if(j < n-1):
@@ -122,15 +122,21 @@ def lambda_gen(n):
     return ret_list
 
 def main():
+    pass
     # generation(10, 20, 10, 1)
-    # generation(10, 21, 10, 0)
-    # generation(10, 22, 5, 1)
-    # generation(10, 23, 5, 0)
-    # generation(10, 5, 3, 1)
-    # generation(10, 6, 3, 0)
-    # generation(10, 7, 1, 1)
-    # generation(10, 8, 1, 0)
-    generation(20,20,15,1,1,5)
+    # generation(10, 21, 10, 1)
+    # generation(10, 22, 10, 1)
+    # generation(10, 23, 10, 1)
+    # generation(10, 20, 10, 0)
+    # generation(10, 20, 5, 1)
+    # generation(10, 20, 5, 0)
+    # generation(100, 9, 2, 1)
+    # generation(100, 6, 2, 1)
+    # generation(100, 7, 2, 1)
+    # generation(100, 8, 4, 1)
+    # generation(100, 8, 4, 0)
+    # generation(100, 8, 2, 1)
+    # generation(100, 8, 2, 0)
 
 if __name__ == "__main__":
     main()
