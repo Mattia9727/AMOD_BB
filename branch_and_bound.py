@@ -232,13 +232,12 @@ def bb_implementation(p, v, lambda_list):
     # Lista dei problemi analizzati e dei LB
     LB_current = GRB.INFINITY
     # Calcolo i valori per la funzione obiettivo rilassata
-    weight_c, weight_p_sum = get_relaxed_obj_func_weight(lambda_list, v, p)
     t = time.time()
     t2 = time.time()
 
     while Q != [] and t2 - t <= constants.COMPUTATION_TIME:
         prob = Q.pop(0)                                                             # Prende un problema da analizzare
-        if prob[1] >= zInc:                                                          # Se il LB del padre è maggiore di zInc, chiudo il problema
+        if prob[1] > zInc:                                                          # Se il LB del padre è maggiore di zInc, chiudo il problema
             continue
         # Risolvo il rilassamento lagrangiano del problema
         xStar, cStar, zStarRL = solve_relaxed_problem(prob[0], p, weight_c, weight_p_sum)
@@ -255,7 +254,7 @@ def bb_implementation(p, v, lambda_list):
                 zInc = zStar
                 if zStar == LB_current:
                     t2 = time.time()
-                    return [xInc, zInc, t2 - t > constants.COMPUTATION_TIME]
+                    return [xInc, zInc, t2 - t,0]
         # Decomporre in sottoproblemi
         for i in range(n):
             no_add = 0
@@ -273,5 +272,5 @@ def bb_implementation(p, v, lambda_list):
         t2 = time.time()
     gap = 0
     if t2-t>=constants.COMPUTATION_TIME:
-        gap = (xInc - LB_current)/LB_current
+        gap = (zInc - LB_current)/LB_current
     return [xInc, zInc, t2 - t, gap]
