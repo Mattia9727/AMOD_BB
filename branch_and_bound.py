@@ -273,5 +273,5 @@ def bb_implementation(p, v, lambda_list):
         t2 = time.time()
     gap = 0
     if t2-t>=constants.COMPUTATION_TIME:
-        gap = (zInc - LB_current)/LB_current
+        gap = (zInc - LB_current)/zInc
     return [xInc, zInc, t2 - t, gap]

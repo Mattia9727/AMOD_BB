@@ -45,15 +45,16 @@ def main():
     pr_time_list = []
     prec_list = []
 
-    txt_files = ["instances_8_2_0.txt","instances_8_2_1.txt",
-                "instances_8_4_0.txt","instances_8_4_1.txt",
-                "instances_9_2_1.txt","instances_6_2_1.txt",
-                "instances_7_2_1.txt"]
-
-    csv_files = ["instances_8_2_0.csv","instances_8_2_1.csv",
-                "instances_8_4_0.csv","instances_8_4_1.csv",
-                "instances_9_2_1.csv","instances_6_2_1.csv",
-                "instances_7_2_1.csv"]
+    # txt_files = ["instances_8_2_0.txt","instances_8_2_1.txt",
+    #             "instances_8_4_0.txt","instances_8_4_1.txt",
+    #             "instances_9_2_1.txt","instances_6_2_1.txt",
+    #             "instances_7_2_1.txt"]
+    txt_files = ["instances_20_19_0.txt"]
+    csv_files = ["instances_20_19_0.csv"]
+    # csv_files = ["instances_8_2_0.csv","instances_8_2_1.csv",
+    #             "instances_8_4_0.csv","instances_8_4_1.csv",
+    #             "instances_9_2_1.csv","instances_6_2_1.csv",
+    #             "instances_7_2_1.csv"]
 
     # txt_files = ["instances_20_5_0.txt","instances_20_5_1.txt",
     #             "instances_20_10_0.txt","instances_20_10_1.txt",
@@ -78,6 +79,7 @@ def main():
             # write the header
             writer.writerow(header)
 
+        #with open(txt_file, "r", encoding='UTF8') as instances:
         with open("instances\\"+txt_file, "r", encoding='UTF8') as instances:
             pr_time = instances.readline()
             first = 1
@@ -87,10 +89,10 @@ def main():
                 prec_list = generator.parse_prec(prec)
                 # mu = generator.mu_gen(len(prec_list))
                 objVal, objBound, gap_pli, total_pli = solver.pli_implementation(pr_time_list, prec_list)
-                if first==1:
-                    first = 0
-                    for i in range(len(prec_list)):
-                        lambda_list.append(.5)
+                # if first==1:
+                #     first = 0
+                for i in range(len(prec_list)):
+                    lambda_list.append(.5)
                 x,z,total_bb, gap_bb = branch_and_bound.bb_implementation(pr_time_list, prec_list, lambda_list)
                 pr_time = instances.readline()
 
@@ -106,9 +108,6 @@ def main():
 
 
 #CALCOLO TEMPO BB
-
-
-
 
 if __name__ == "__main__":
     main()

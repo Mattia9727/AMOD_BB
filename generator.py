@@ -1,4 +1,5 @@
 import random
+import graph_implementation
 
 def checkCicli(precs):
     for n in range(len(precs)):
@@ -14,16 +15,19 @@ def checkCicli(precs):
                         return 1
     return 0
 
-
+#N: numero di istanze da generare
+#n: numero di job
+#k: numero di precedenze
 def generation(N, n, k, var=0, mod=0, c=0):
-    if n<=k:
+    #Il numero massimo di precedenze è n*(n-1)/2
+    if k > (n*(n-1)/2):
         print("Ci sono cicli.")
         return
-
+    #Chiudo il file in cui salvo le istanze create in caso sia già aperto
     with open('instances\instances_'+str(n)+'_'+str(k)+'_'+str(var)+'.txt', 'w') as file:
-        file.close()
+         file.close()
 
-
+    #Genero randomicamente i processing time e le precedenze per ogni istanza
     for i in range(N):
         random.seed()
         Pi = []
@@ -34,6 +38,9 @@ def generation(N, n, k, var=0, mod=0, c=0):
             else:
                 Pi.append(random.randint(1, 100))
 
+        # genero il grafo
+        job_graph = graph_implementation.Graph(n)
+
         j=0
         # GENERAZIONE RANDOM DI k PRECEDENZE
         if mod == 0:
@@ -41,12 +48,18 @@ def generation(N, n, k, var=0, mod=0, c=0):
                 prec = [random.randint(0,n-1),random.randint(0,n-1)]
                 neg_prec = [prec[1], prec[0]]
                 if (prec[0] != prec[1]) and (prec not in precs) and (neg_prec not in precs):
-                    precs.append(prec)
-                    j+=1
-            #Check presenza di cicli
-            if checkCicli(precs):
-                i-=1
-                break
+                    job_graph.addEdge(prec[0], prec[1])
+                    # Check presenza di cicli
+                    if not job_graph.isCyclic():
+                        precs.append(prec)
+                        j+=1
+                        print(str(j))
+                    else:
+                        job_graph.removeEdge(prec[0],prec[1])
+
+            # if job_graph.isCyclic():
+            #     i-=1
+            #     break
 
         elif mod == 1:
             while j<k:
@@ -68,8 +81,8 @@ def generation(N, n, k, var=0, mod=0, c=0):
 
                         if j>=k:
                             break
-
         with open('instances\\instances_'+str(n)+'_'+str(k)+'_'+str(var)+'.txt', 'a') as file:
+        #with open('instances.txt', 'a') as file:
             for j in range(n):
                 file.write(str(Pi[j]))
                 if(j < n-1):
@@ -122,7 +135,18 @@ def lambda_gen(n):
     return ret_list
 
 def main():
-    pass
+    # generation(1,4,1,1)
+    # generation(1, 5, 1, 1)
+    # generation(1, 6, 1, 1)
+    # generation(1, 7, 2, 1)
+    # generation(1, 8, 2, 1)
+    # generation(1, 9, 2, 1)
+    # generation(1, 10, 2, 1)
+    # generation(1, 11, 3, 1)
+    # generation(1, 12, 3, 1)
+    #generation(1,8,14,0)
+    #generation(1,20,90,0)
+    generation(1,20,19,0)
     # generation(10, 20, 10, 1)
     # generation(10, 21, 10, 1)
     # generation(10, 22, 10, 1)
