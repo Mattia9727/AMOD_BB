@@ -3,7 +3,7 @@ from bisect import bisect, insort, insort_left
 from collections import namedtuple
 from operator import attrgetter
 from pprint import pprint
-from numpy import linalg
+
 from gurobipy import GRB
 
 import constants
@@ -224,6 +224,7 @@ def bb_implementation(p, v, lambda_list):
     n = len(p)
     xInc = None
     zInc = GRB.INFINITY
+    # [] corrisponde alla root
     Node = namedtuple('Node', ('fixed_schedule', 'father_lb'))
     by_lb = attrgetter('father_lb')
     Q = [Node([], GRB.INFINITY)]                                                    # Lista dei prob da analizzare
@@ -271,6 +272,6 @@ def bb_implementation(p, v, lambda_list):
                     insort(Q, new_node, key=by_lb)
         t2 = time.time()
     gap = 0
-    if t2-t>=constants.COMPUTATION_TIME:
-        gap = (zInc - LB_current)/LB_current
+    if t2-t >= constants.COMPUTATION_TIME:
+        gap = (zInc - LB_current)/zInc
     return [xInc, zInc, t2 - t, gap]
