@@ -69,14 +69,23 @@ def main():
         txt_file = txt_files[n]
         csv_file = csv_files[n]
         lambda_list = []
-        with open("results\\"+csv_file, 'w', encoding='UTF8') as f:
-            f.close()
 
+        from os.path import exists
         import csv
-        with open("results\\"+csv_file, 'a', encoding='UTF8', newline='') as f:
-            writer = csv.writer(f)
-            # write the header
-            writer.writerow(header)
+
+        if not exists("results\\"+csv_file):
+            with open("results\\"+csv_file, 'w', encoding='UTF8') as f:
+                f.close()
+
+            with open("results\\" + csv_file, 'a', encoding='UTF8', newline='') as f:
+                writer = csv.writer(f)
+                # write the header
+                writer.writerow(header)
+        else:
+            with open("results\\" + csv_file, 'a', encoding='UTF8', newline='') as f:
+                writer = csv.writer(f)
+                # write the header
+                writer.writerow("")
 
         with open("instances\\"+txt_file, "r", encoding='UTF8') as instances:
             pr_time = instances.readline()
