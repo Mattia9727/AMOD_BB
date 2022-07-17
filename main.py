@@ -1,4 +1,5 @@
 import csv
+import shutil
 import time
 
 import gurobipy as gp
@@ -48,8 +49,8 @@ def main():
     # txt_files = ["instances_8_3_0.txt","instances_8_3_1.txt",
     #             "instances_8_14_0.txt","instances_8_14_1.txt",
     #             "instances_20_95_0.txt","instances_20_95_1.txt"]
-    #
-    #
+    # #
+    # #
     # csv_files = ["instances_8_3_0.csv","instances_8_3_1.csv",
     #             "instances_8_14_0.csv","instances_8_14_1.csv",
     #             "instances_20_95_0.csv","instances_20_95_1.csv"]
@@ -112,7 +113,7 @@ def main():
                     writer = csv.writer(f)
                     # write the data
                     writer.writerow(data)
-
+                shutil.copy("results\\" + csv_file, 'C:\\Users\\matti\\Google Drive\\RISULTATI AMOD')
     # total_pli = solver.solve_model(solver.pli_implementation(10, [12,35,47,21,16,46,20,4,11,23], [[8,7],[6,1],[1,4]], 0)[0])[1]
     # total = time.time() - t
 
