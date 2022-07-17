@@ -23,7 +23,7 @@ def generation(N, n, k, var=0, mod=0, c=0):
     if k > (n*(n-1)/2):
         print("Ci sono cicli.")
         return
-    #Chiudo il file in cui salvo le istanze create in caso sia già aperto
+    # #Chiudo il file in cui salvo le istanze create in caso sia già aperto
     with open('instances\instances_'+str(n)+'_'+str(k)+'_'+str(var)+'.txt', 'w') as file:
          file.close()
 
@@ -82,7 +82,7 @@ def generation(N, n, k, var=0, mod=0, c=0):
                         if j>=k:
                             break
         with open('instances\\instances_'+str(n)+'_'+str(k)+'_'+str(var)+'.txt', 'a') as file:
-        #with open('instances.txt', 'a') as file:
+        #with open('instances\\instances.txt', 'a') as file:
             for j in range(n):
                 file.write(str(Pi[j]))
                 if(j < n-1):
@@ -135,20 +135,10 @@ def lambda_gen(n):
     return ret_list
 
 def main():
-    # generation(1,4,1,1)
-    # generation(1, 5, 1, 1)
-    # generation(1, 6, 1, 1)
-    # generation(1, 7, 2, 1)
-    # generation(1, 8, 2, 1)
-    # generation(1, 9, 2, 1)
-    # generation(1, 10, 2, 1)
-    # generation(1, 11, 3, 1)
-    # generation(1, 12, 3, 1)
-    #generation(1,8,14,0)
-    #generation(1,20,90,0)
-    generation(1,20,19,0)
-    # generation(10, 20, 10, 1)
-    # generation(10, 21, 10, 1)
+    # for i in range(3,40):
+    #     generation(1,i,i*(i-1)/4,0)
+    generation(20, 20, 19, 0)
+    generation(20, 20, 19, 1)
     # generation(10, 22, 10, 1)
     # generation(10, 23, 10, 1)
     # generation(10, 20, 10, 0)
@@ -157,13 +147,12 @@ def main():
     # generation(100, 9, 2, 1)
     # generation(100, 6, 2, 1)
     # generation(100, 7, 2, 1)
-    # generation(100, 8, 4, 1)
-    # generation(100, 8, 4, 0)
-    # generation(100, 8, 2, 1)
-    # generation(100, 8, 2, 0)
+    # generation(100, 8, 3, 1)
+    # generation(100, 8, 3, 0)
+    # generation(100, 8, 14, 1)
+    # generation(100, 8, 14, 0)
+    # generation(100, 20, 95, 1)
+    # generation(100, 20, 95, 0)
 
 if __name__ == "__main__":
     main()
-    # print(checkCicli([[1,0],[0,3],[5,8],[0,6],[3,6],[1,0],[0,9],[1,5],[0,6]]))
-
-

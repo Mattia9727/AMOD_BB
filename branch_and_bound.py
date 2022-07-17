@@ -272,6 +272,6 @@ def bb_implementation(p, v, lambda_list):
                     insort(Q, new_node, key=by_lb)
         t2 = time.time()
     gap = 0
-    if t2-t>=constants.COMPUTATION_TIME:
+    if t2-t >= constants.COMPUTATION_TIME:
         gap = (zInc - LB_current)/zInc
     return [xInc, zInc, t2 - t, gap]
