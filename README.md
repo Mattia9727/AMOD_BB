@@ -1,4 +1,5 @@
-Antonangeli Mattia, Villani Federica. Progetto del corso di Algoritmi e Modelli di Ottimizzazione Discreta.
+Antonangeli Mattia, Villani Federica 
+Progetto del corso di Algoritmi e Modelli di Ottimizzazione Discreta.
 
 ISTRUZIONI PER L'USO
 
