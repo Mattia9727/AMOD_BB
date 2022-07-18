@@ -19,3 +19,5 @@ generator.py: usato per generare il file "instances.txt" in cui vengono scritti 
     d) var: 1 se si vogliono generare processing time con variabilità alta (tempi da 40 a 60), 0 se si vogliono generare con variabilità bassa (tempi da 1 a 100)
     e) hold_on: se il file instances.txt esiste, si può decidere se mantenere il file e aggiungere le nuove istanze in fondo al file (hold_on=1) oppure se sovrascrivere il file (hold_on=0)
     
+Nota: il limite di tempo massimo di esecuzione è impostato a 600 secondi. Il limite può essere cambiato nel file constants.py
+    
