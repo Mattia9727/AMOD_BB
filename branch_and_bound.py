@@ -57,7 +57,7 @@ def smith_rule(p, w, fixed):
 
 def get_relaxed_obj_func_weight(lambda_list, constr, p):
     weight_c = []
-    weight_p = 0
+    weighted_p = 0
     for i in range(len(p)):
         w = 1
         for j in range(len(constr)):
@@ -67,9 +67,9 @@ def get_relaxed_obj_func_weight(lambda_list, constr, p):
             elif i == v[1]:
                 w -= lambda_list[j]
             if i == 0:
-                weight_p += p[v[1]] * lambda_list[j]
+                weighted_p += p[v[1]] * lambda_list[j]
         weight_c.append(w)
-    return weight_c, weight_p
+    return weight_c, weighted_p
 
 
 """
@@ -124,9 +124,25 @@ def is_new_problem_feasible(prob, i, v):
         return 0
 
 
-def solve_relaxed_problem(problem, p, weight_c, weighted_p):
-    xStar = problem.copy()
-    xStar.extend(smith_rule(p, weight_c, problem))
+""" 
+    Risolve il sottoproblema utilizzando la regola di Smith
+
+    Param: 
+        prob: il problema in analisi
+        p: lista dei processing time
+        weight_c: lista dei pesi delle variabili
+        weighted_p: somma pesata dei processing time
+
+    Output: 
+        scheduling ottimo,
+        lista dei tempi di completamento relativi allo scheduling ottimo,
+        valore della soluzione ottima del problema rilassato
+"""
+
+
+def solve_relaxed_problem(prob, p, weight_c, weighted_p):
+    xStar = prob.copy()
+    xStar.extend(smith_rule(p, weight_c, prob))
     # Calcolo il valore corrispondente alla soluzione trovata
     zStar = 0
     c = 0
