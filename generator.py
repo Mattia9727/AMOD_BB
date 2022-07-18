@@ -57,35 +57,10 @@ def generation(N, n, k, var=0, mod=0, c=0):
                     else:
                         job_graph.removeEdge(prec[0],prec[1])
 
-            # if job_graph.isCyclic():
-            #     i-=1
-            #     break
-
-        elif mod == 1:
-            while j<k:
-                randomVar = random.randint(0,n-2)
-                prec = [randomVar,randomVar+1]
-                if prec not in precs and [prec[0]+1,prec[1]+1] not in precs and [prec[0]-1,prec[1]-1] not in precs:
-                    precs.append(prec)
-                    j += 1
-                    for l in range(c-1):
-                        if prec[1] == n-1:
-                            if ([prec[0]-1-l, prec[0]-l] not in precs):
-                                precs.append([prec[0]-1-l, prec[0]-l])
-                                j+=1
-                        else:
-                            if ([prec[1], prec[1]+1] not in precs):
-                                prec=[prec[1], prec[1]+1]
-                                precs.append(prec)
-                                j+=1
-
-                        if j>=k:
-                            break
-        with open('instances\\instances_'+str(n)+'_'+str(k)+'_'+str(var)+'.txt', 'a') as file:
-        #with open('instances\\instances.txt', 'a') as file:
+        with open('instances.txt', 'a') as file:
             for j in range(n):
                 file.write(str(Pi[j]))
-                if(j < n-1):
+                if j < n - 1:
                     file.write("_")
             file.write("\n")
             for j in range(len(precs)):
@@ -94,7 +69,8 @@ def generation(N, n, k, var=0, mod=0, c=0):
                 if j < len(precs)-1:
                     file.write("_")
             file.write("\n")
-        file.close()
+        if not hold_on:
+            file.close()
 
     return
 

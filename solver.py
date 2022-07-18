@@ -1,59 +1,74 @@
 import time
-from pprint import pprint
 
 import gurobipy as gp
 from gurobipy import GRB
 
 import constants
-import generator
 
-# m: gurobi model
-# x: variabili di precedenza
-# i,j: indici da fissare
+"""
+    Aggiunge i vincoli di precedenza fissati a priori al modello di gurobi
+    
+    Param: 
+        m: modello gurobi
+        c: lista di variabili che rappresentano i tempi di completamento dei job
+        v: lista delle relazioni di precedenza fissate
+        p: lista dei processing time dei job
+        
+"""
+
+
 def set_fixed_precedence(m, c, v, p):
     i = v[0]
     j = v[1]
-    m.addConstr(c[0, j] - p[j] >= c[0, i], name="Vincolo di precedenza fissato "+str(i)+str(j))
-
-# def get_relaxed_obj_func(c, v, lambda_list,p):
-#     vars = []
-#     mu_sum = 0
-#     for i in range(len(v)):
-#         constr = v[i]
-#         if constr[0] < constr[1]:
-#             vars.append(x[constr[0]][constr[1]])   # x=1
-#             mu_sum += lambda_list[i]
-#         else:
-#             vars.append(x[constr[1]][constr[0]])   # x=0
-#     relax_vars = gp.LinExpr(lambda_list, vars)
-#
-#     return c.sum() + (relax_vars - mu_sum)
+    m.addConstr(c[0, j] - p[j] >= c[0, i], name="Vincolo di precedenza fissato " + str(i) + str(j))
 
 
+"""
+    Imposta il valore del bigM pari a alla somma dei processing time dei job + il massimo processing time
+    
+    Param:
+        p: lista dei processing time
+    
+    Output:
+        valore del big M utilizzato
+"""
 
 
 def set_bigM(p):
     sum = 0
     for val in p:
         sum += val
-    return 10 * sum
+    return sum + max(p)
 
-# n: numero di job
-# p: lista contenente i processing time dei job
-# v: vincoli di precedenza
+
+"""
+    Implementa la costruzione e risoluzione del modello PLI tramite le API di GUROBI
+    
+    Param: 
+        p: lista dei processing time 
+        v: lista delle precedenze fissate
+        
+    Output:
+        valore della soluzione migliore trovata
+        lowerbound migliore trovato
+        gap tra soluzione migliore trovata e LB trovato
+        tempo totale di esecuzione
+"""
+
+
 def pli_implementation(p, v):
     n = len(p)
     M = set_bigM(p)
     try:
         env = gp.Env()
-        m = gp.Model("1|prec|sum(Ci)",env=env)
+        m = gp.Model("1|prec|sum(Ci)", env=env)
         # x[i,j]=1 significa che i precede j
-        x=[]
+        x = []
         for i in range(n):
             x.append([])
             for j in range(n):
-                if j>i:
-                    x[i].append(m.addVar(vtype=GRB.BINARY, name="x["+str(n*i+j)+"]"))
+                if j > i:
+                    x[i].append(m.addVar(vtype=GRB.BINARY, name="x[" + str(n * i + j) + "]"))
                 else:
                     x[i].append(None)
         c = m.addMVar((1, n), lb=0, vtype=GRB.INTEGER, name="c")
@@ -67,7 +82,7 @@ def pli_implementation(p, v):
             m.addConstr(c[0, j] - p[j] >= c[0, i], name="Vincolo di precedenza fissato " + str(i) + str(j))
         # Vincoli
         for i in range(n):
-            m.addConstr(c[0, i] >= p[i], name="tempo di completamento"+str(i))
+            m.addConstr(c[0, i] >= p[i], name="tempo di completamento" + str(i))
             for j in range(n):
                 if i != j and x[i][j] is not None:
                     m.addConstr(c[0, j] >= c[0, i] + p[j] - (M * (1 - x[i][j])),
